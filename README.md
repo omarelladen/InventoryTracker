@@ -1,1 +1,0 @@
-# Sistema rastreador de inventário
