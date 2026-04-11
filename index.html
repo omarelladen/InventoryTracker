@@ -2,10 +2,68 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Sistema rastreador de inventário</title>
+    <title>SIMPAT</title>
 </head>
 <body>
-    <h1>Sistema rastreador de inventário</h1>
-    <p>Este é um sistema para o controle e rastreamento de inventário.</p>
+    <h1>Sistema Inteligente de Monitoramento Patrimonial (SIMPAT)</h1>
+
+    <h2>Contexto</h2>
+    <p>
+        Instituições de ensino superior dependem de uma quantidade significativa
+        de ativos patrimoniais para sustentar suas atividades acadêmicas e
+        administrativas, como computadores, notebooks, projetores, monitores,
+        televisores, caixas de som e outros equipamentos de apoio didático.
+        Em muitos cenários, esses itens são distribuídos entre salas, laboratórios
+        e setores sem um mecanismo de rastreabilidade contínua. Como consequência,
+        surgem problemas recorrentes de extravio, remanejamento não registrado,
+        dificuldade de auditoria e suspeitas de furto.
+    </p>
+
+    <h2>Objetivo</h2>
+    <p>
+        O projeto proposto visa desenvolver um protótipo funcional de sistema
+        inteligente de monitoramento patrimonial por localização esperada, no
+        qual cada ativo monitorado recebe um dispositivo embarcado de baixo
+        consumo energético. Esse dispositivo será acoplado ao patrimônio e
+        associado, no sistema, a uma sala previamente cadastrada. A premissa
+        do projeto não é realizar geolocalização precisa em tempo real, mas
+        sim monitorar se o patrimônio permanece no ambiente esperado e
+        sinalizar indícios de movimentação não autorizada.
+    </p>
+    <p>
+        A solução será composta por um módulo embarcado baseado em ESP32, um sensor
+        de movimento, um buzzer para alerta local e uma bateria para alimentação
+        autônoma. Em operação normal, o dispositivo permanecerá em modo de baixo
+        consumo e realizará um envio diário de verificação para um servidor. Em
+        paralelo, a lógica embarcada será capaz de detectar movimentações
+        recorrentes em intervalo curto. Quando essa condição for classificada como
+        crítica, o sistema executará duas ações: acionará o buzzer como alerta local
+        e tentará transmitir ao servidor o identificador único do patrimônio.
+    </p>
+
+    <h2>Plano de Projeto</h2>
+    <a href="docs/proposta.pdf">Abrir PDF</a>
+
+    <h2>Cronograma</h2>
+    <div style="text-align: center;">
+        <iframe src="https://docs.google.com/spreadsheets/d/e/2PACX-1vSdrFwKn6Pcm9OTqncYPyNmgvNu9JRKfRh2I5ptwfMOnSn8_koGTogXkSX-LN84cy7GM72PXyzqHOJP/pubhtml?gid=0&amp;single=true&amp;widget=true&amp;headers=false"
+        width="70%" height="400">
+        </iframe>
+        <br>
+        <a href=https://docs.google.com/spreadsheets/d/1I-3883AhkDzDwdDgLZ1_V3AYfunQ5SttMlpM0htlLLk/edit?gid=0#gid=0>
+        Abrir no Google Sheets
+        </a>
+    </div>
+
+    <h2>Entregas</h2>
+    <ul>
+        <li><a href="entregas/1/index.html">Entrega 1</a></li>
+    </ul>
+
+    <h2>Desenvolvedores</h2>
+    <ul>
+      <li>Matheus Cruz da Silva</li>
+      <li>Omar Zagonel El Laden</li>
+    </ul>
 </body>
 </html>

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Entrega 1</title>
+</head>
+<body>
+    <h1>Entrega 1</h1>
+
+    <h2>Objetivos</h2>
+    <ul>
+      <li>Definir e implementar conteúdo do site</li>
+      <li>Testar leitura do sensor de vibração KY-002</li>
+      <li>Testar Deep Sleep temporizado do ESP32</li>
+      <li>Testar acordamento pelo sensor</li>
+    </ul>
+
+    <h2>Desenvolvimento</h2>
+    <h3>Sensor de vibração KY-002</h3>
+    <p>
+        Inicialmente, foram realizados testes simples de leitura do sensor KY-002.
+        Foram compradas 2 unidades dele, de forma a ser testado individualmente
+        por cada um dos integrantes. Ele é um dos mais simples disponíveis
+        no mercado para detecção de vibração, sendo composto de uma mola que ao
+        receber uma vibração externa faz uma conexão elétrica com o invólucro
+        cilíndrico.
+    </p>
+    <div style="text-align: center;">
+        <img src="imgs/ky002.jpg" alt="KY-002" width="300">
+    </div>
+    <p>
+        Mesmo sendo o mais simples dentre as opções, utilizando um código simples
+        para mostrar em um monitor serial a detecção de níveis baixos de tensão
+        vindo do módulo foi possível obter um resultado razoável. Quando o
+        invólucro fica sem contato físico com nenhuma superfície, para acioná-lo
+        é preciso dar um "tapa" no módulo. Mas é possível transmitir a vibração
+        para ele ao deixar o invólucro encostado em uma superfície como a da
+        futura caixa do protótipo. Além disso, dependendo do ângulo em que se
+        deixa o sensor, a sensibilidade pode ficar maior ou menor.
+    </p>
+    <div style="text-align: center;">
+        <video src="vids/ky002.mp4" controls width="300"></video>
+    </div>
+    <h3>Deep Sleep do ESP32</h3>
+    <p>
+        Baseando-se em códigos obtidos no site da Programming Electronics Academy
+        para o uso do Deep Sleep do ESP32, foi possível testá-los com sucesso e
+        implementar o acionamento de um LED após acordado por tempo. Porém, por
+        uma má utilização do tempo não foi possível demonstrar o acordamento
+        pelo sensor.
+    </p>
+    <p>
+        Além do mais, foi discutido entre a equipe alternativas mais precisas de
+        para detectar moviment, como sensores de vibração que pode ser regulado
+        por um potenciômetro e o acelerômetro de 3 eixos LIS3DH -
+        que possui maior precisão e consumo de apenas 2 <span> &#181; </span>
+        A de corrente quando não acionado por uma interrupção. Porém, precisão
+        não é o único fator importante sendo analisadas,
+        já que é também necessário conseguir um baixo consumo de bateria,
+        baixo custo e tamanho físico reduzido.
+    </p>
+    <h2>Referências</h2>
+    <ul>
+        <li>
+            <a href=https://www.programmingelectronics.com/esp32-deep-sleep-mode/?utm_source=youtube&utm_medium=description&utm_campaign=video>
+            A Practical Guide to ESP32 Deep Sleep Modes
+            </a>
+        </li>
+        <li>
+            <a href=https://www.programmingelectronics.com/external-wake-up-esp32/?utm_source=youtube&utm_medium=description&utm_campaign=video&utm_content=Beyond+the+Zzz%27s:+ESP32%27s+External+Wake-Up+in+Deep+Sleep+Explored>
+            From Naptime To Action: ESP32 Deep Sleep With External Wake-Up
+            </a>
+        </li>
+        <li>
+            <a href=https://arduinomodules.info/ky-002-vibration-switch-module/>
+            KY-002 Vibration Switch Module
+            </a>
+        </li>
+        <li>
+            <a href=https://www.youtube.com/watch?v=3RqXf-Cs4kI>
+            3 Vibration Sensors Covered in one Video | SW-1801 | 801S | KY-031
+            </a>
+        </li>
+    </ul>
+</body>
+</html>
+
