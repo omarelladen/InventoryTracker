@@ -6,17 +6,20 @@
 #define PIN_LED 23
 #define PIN_BUZZER 22
 
-#define TIME_LIM_REP_S 20
+#define TIME_LIM_REP_S 10
 #define ALERT_REP_COUNT 3
 
 #define NUM_BEEPS 3
 #define NUM_NW_TRIES 3
+#define TIMEOUT_WIFI_S 10
 
 #define NW_SSID ""
 #define NW_PASSWORD ""
 
 #define URL "http://jsonplaceholder.typicode.com/posts"  // "http://10.190.26.104/send/cli"
 #define BODY "msg=Alert"
+
+#define BOARD_ID 0
 
 
 RTC_DATA_ATTR int boot_count = 0;
@@ -35,26 +38,38 @@ void beep_buzzer()
     }
 }
 
-void connect_wifi()
+int connect_wifi(time_t *time_now)
 {
     WiFi.begin(NW_SSID, NW_PASSWORD);
+
+    // TODO: set timeout
+    time(time_now);
+    unsigned long time_start = *time_now;
 
     Serial.println("Connecting");
     while(WiFi.status() != WL_CONNECTED)
     {
         delay(500);
         Serial.print(F("."));
+
+        time(time_now);
+        if (*time_now - time_start > TIMEOUT_WIFI_S)
+        {
+            Serial.print("Timeout");
+            return 1;
+        }
     }
 
     Serial.println("Connected");
     Serial.print("IP: ");
     Serial.println(WiFi.localIP());
+
+    return 0;
 }
 
-void post_data()
+int post_data()
 {
-    bool success = false;
-    for (int i=0; i < NUM_NW_TRIES && success == false; i++)
+    for (int i=0; i < NUM_NW_TRIES; i++)
     {
         Serial.println("Will try to POST");
 
@@ -77,14 +92,13 @@ void post_data()
                 Serial.print("Response: ");
                 Serial.println(response);
 
-                success = true;
+                http.end();
+                return 0;
             }
-            else
-            {
-                Serial.println("Error sending POST");
-                Serial.print("Response code: ");
-                Serial.println(http_response_code);
-            }
+
+            Serial.println("Error sending POST");
+            Serial.print("Response code: ");
+            Serial.println(http_response_code);
 
             http.end();
         }
@@ -93,6 +107,8 @@ void post_data()
             Serial.println("Error in connection");
         }
     }
+
+    return 1;
 }
 
 void setup()
@@ -105,6 +121,10 @@ void setup()
     pinMode(PIN_BUZZER, OUTPUT);
 
     esp_sleep_enable_ext0_wakeup((gpio_num_t)PIN_WAKEUP, LOW);
+
+
+    // TODO: read battery level with analog input
+    // TODO: create payload with battery, id and alert
 
 
     time_t time_now;
@@ -134,7 +154,6 @@ void setup()
         // TODO: try to connect to Wi-Fi and send basic alert or store info
     }
 
-    last_time_awake = time_now;
 
     if (fast_wakeup_count > ALERT_REP_COUNT)  // repeated event
     {
@@ -144,8 +163,8 @@ void setup()
         beep_buzzer();
 
         // TODO: try to connect to Wi-Fi and send risk alert
-        connect_wifi();
-        post_data();
+        if (connect_wifi(&time_now) == 0)
+            post_data();
     }
 
     // TODO: prepare wakeup at a determined time for daily ping or retry
@@ -163,6 +182,9 @@ void setup()
 
     Serial.println("Going to sleep now");
     Serial.flush();
+
+    time(&time_now);
+    last_time_awake = time_now;
 
     esp_deep_sleep_start();
 }
