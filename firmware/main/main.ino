@@ -10,14 +10,14 @@
 #define ALERT_REP_COUNT 3
 
 #define NUM_BEEPS 3
-#define NUM_NW_TRIES 3
+#define NUM_POST_TRIES 3
 #define TIMEOUT_WIFI_S 10
 
 #define NW_SSID ""
 #define NW_PASSWORD ""
 
 #define URL "http://jsonplaceholder.typicode.com/posts"  // "http://10.190.26.104/send/cli"
-#define BODY "msg=Alert"
+// #define BODY "msg=Alert"
 
 #define BOARD_ID 0
 
@@ -55,7 +55,7 @@ int connect_wifi(time_t *time_now)
         time(time_now);
         if (*time_now - time_start > TIMEOUT_WIFI_S)
         {
-            Serial.print("Timeout");
+            Serial.println("Timeout");
             return 1;
         }
     }
@@ -69,7 +69,7 @@ int connect_wifi(time_t *time_now)
 
 int post_data()
 {
-    for (int i=0; i < NUM_NW_TRIES; i++)
+    for (int i=0; i < NUM_POST_TRIES; i++)
     {
         Serial.println("Will try to POST");
 
@@ -77,10 +77,17 @@ int post_data()
         {
             HTTPClient http;
             http.begin(URL);
-            http.addHeader("Content-Type", "text/plain");
+
+            String body = "{\"board_id\":" + String(BOARD_ID) + "," \
+                          + "\"status\":\"alert\"," \
+                          + "\"battery\":" + String(1) + "," \
+                          + "\"boot_count\":" + String(fast_wakeup_count) \
+                          + "}";
+
+            http.addHeader("Content-Type", "application/json");  // "text/plain"
 
             Serial.println("POSTing");
-            int http_response_code = http.POST(BODY);
+            int http_response_code = http.POST(body);
 
             if (http_response_code > 0)
             {
