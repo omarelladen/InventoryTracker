@@ -5,6 +5,7 @@
 #define PIN_WAKEUP 4
 #define PIN_LED 23
 #define PIN_BUZZER 22
+#define PIN_BATTERY 34
 
 #define TIME_LIM_REP_S 10
 #define ALERT_REP_COUNT 3
@@ -17,9 +18,10 @@
 #define NW_PASSWORD ""
 
 #define URL "http://jsonplaceholder.typicode.com/posts"  // "http://10.190.26.104/send/cli"
-// #define BODY "msg=Alert"
 
 #define BOARD_ID 0
+
+// TODO: use vars instead of defines to change based on server response
 
 
 RTC_DATA_ATTR int boot_count = 0;
@@ -67,7 +69,7 @@ int connect_wifi(time_t *time_now)
     return 0;
 }
 
-int post_data()
+int post_data(int battery_level)
 {
     for (int i=0; i < NUM_POST_TRIES; i++)
     {
@@ -80,7 +82,7 @@ int post_data()
 
             String body = "{\"board_id\":" + String(BOARD_ID) + "," \
                           + "\"status\":\"alert\"," \
-                          + "\"battery\":" + String(1) + "," \
+                          + "\"battery\":" + String(battery_level) + "," \
                           + "\"boot_count\":" + String(fast_wakeup_count) \
                           + "}";
 
@@ -131,7 +133,9 @@ void setup()
 
 
     // TODO: read battery level with analog input
-    // TODO: create payload with battery, id and alert
+    int battery_level = analogRead(PIN_BATTERY);
+    Serial.print("Battery: ");
+    Serial.println(battery_level);
 
 
     time_t time_now;
@@ -171,7 +175,7 @@ void setup()
 
         // TODO: try to connect to Wi-Fi and send risk alert
         if (connect_wifi(&time_now) == 0)
-            post_data();
+            post_data(battery_level);
     }
 
     // TODO: prepare wakeup at a determined time for daily ping or retry
