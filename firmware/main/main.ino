@@ -2,6 +2,7 @@
 #include <WiFi.h>
 #include <HTTPClient.h>
 
+
 #define PIN_WAKEUP 4
 #define PIN_LED 23
 #define PIN_BUZZER 22
@@ -10,14 +11,16 @@
 #define TIME_LIM_REP_S 10
 #define ALERT_REP_COUNT 3
 
-#define NUM_BEEPS 3
 #define NUM_POST_TRIES 3
 #define TIMEOUT_WIFI_S 10
+
+#define NUM_BEEPS 3
+#define BEEP_DELAY 200
 
 #define NW_SSID ""
 #define NW_PASSWORD ""
 
-#define URL "http://jsonplaceholder.typicode.com/posts"  // "http://10.190.26.104/send/cli"
+#define URL "http://jsonplaceholder.typicode.com/posts"
 
 #define BOARD_ID 0
 
@@ -31,16 +34,16 @@ RTC_DATA_ATTR unsigned long last_time_awake = 0;
 
 void beep_buzzer()
 {
-    for (int8_t i=0; i < NUM_BEEPS; i++)
+    for (int i=0; i < NUM_BEEPS; i++)
     {
         digitalWrite(PIN_BUZZER, HIGH);
-        delay(200);
+        delay(BEEP_DELAY);
         digitalWrite(PIN_BUZZER, LOW);
-        delay(200);
+        delay(BEEP_DELAY);
     }
 }
 
-int connect_wifi(time_t *time_now)
+bool connect_wifi(time_t *time_now)
 {
     WiFi.begin(NW_SSID, NW_PASSWORD);
 
@@ -58,7 +61,7 @@ int connect_wifi(time_t *time_now)
         if (*time_now - time_start > TIMEOUT_WIFI_S)
         {
             Serial.println("Timeout");
-            return 1;
+            return false;
         }
     }
 
@@ -66,10 +69,10 @@ int connect_wifi(time_t *time_now)
     Serial.print("IP: ");
     Serial.println(WiFi.localIP());
 
-    return 0;
+    return true;
 }
 
-int post_data(int battery_level)
+bool post_data(int battery_level)
 {
     for (int i=0; i < NUM_POST_TRIES; i++)
     {
@@ -86,7 +89,7 @@ int post_data(int battery_level)
                           + "\"boot_count\":" + String(fast_wakeup_count) \
                           + "}";
 
-            http.addHeader("Content-Type", "application/json");  // "text/plain"
+            http.addHeader("Content-Type", "application/json");
 
             Serial.println("POSTing");
             int http_response_code = http.POST(body);
@@ -102,7 +105,7 @@ int post_data(int battery_level)
                 Serial.println(response);
 
                 http.end();
-                return 0;
+                return true;
             }
 
             Serial.println("Error sending POST");
@@ -117,7 +120,7 @@ int post_data(int battery_level)
         }
     }
 
-    return 1;
+    return false;
 }
 
 void setup()
@@ -132,7 +135,7 @@ void setup()
     esp_sleep_enable_ext0_wakeup((gpio_num_t)PIN_WAKEUP, LOW);
 
 
-    // TODO: read battery level with analog input
+    // Read battery level
     int battery_level = analogRead(PIN_BATTERY);
     Serial.print("Battery: ");
     Serial.println(battery_level);
@@ -173,8 +176,8 @@ void setup()
         // Alert
         beep_buzzer();
 
-        // TODO: try to connect to Wi-Fi and send risk alert
-        if (connect_wifi(&time_now) == 0)
+        // Try to connect to Wi-Fi and send risk alert
+        if (connect_wifi(&time_now))
             post_data(battery_level);
     }
 
@@ -185,9 +188,10 @@ void setup()
     Serial.println("Boot num: " + String(boot_count));
 
     digitalWrite(PIN_LED, HIGH);
-    delay(1000);
+    delay(200);
     digitalWrite(PIN_LED, LOW);
-    delay(300);
+    delay(200);
+
 
     // Sleep
 
