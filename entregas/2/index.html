@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Entrega 2</title>
+</head>
+<body>
+    <h1>Entrega 2</h1>
+
+    <h2>Objetivos</h2>
+    <ul>
+      <li>Criar regras para tempo acordado e timeout de conexão</li>
+      <li>Testar conexão do esp à rede local após acordamento</li>
+      <li>Criar medidor de bateria</li>
+      <li>Testar leitura do medidor</li>
+    </ul>
+
+    <h2>Desenvolvimento</h2>
+
+    <h3>Regras</h3>
+    <p>
+        Foi possível implementar uma lógica inicial para o fluxo após o
+        acordamento do microcontrolador com base no diagrama da proposta. Dessa
+        forma, foi possível acionar um buzzer após acordamento e se conectar a
+        uma rede Wi-Fi para enviar um JSON através de uma requisição HTTP com o
+        método POST.
+    </p>
+
+    <div style="text-align: center;">
+        <video src="vids/flow.mp4" controls width="400"></video>
+    </div>
+
+    <p>
+        Foi utilizado o site
+        <a href=https://jsonplaceholder.typicode.com/>JSONPlaceholder</a>
+        para facilitar a visualização do JSON enviado sem subir um servidor
+        próprio.
+    </p>
+    <p>
+        Alguns parâmetros fixos foram especificados no código, como:
+
+        <ul>
+            <li>
+                Tempo máximo entre um acordamento e o último deep sleep para
+                que 2 acordamentos sejam considerados recorrentes.
+            </li>
+            <li>
+                Número de repetições em sequência para ser considerado estado
+                de alerta, acionando o buzzer e tentando fazer a requisição
+                HTTP.
+            </li>
+            <li>
+                Tempo máximo tentando se conectar à rede antes do timeout.
+            </li>
+            <li>
+                Número de tentativas de fazer a requisição HTTP.
+            </li>
+            <li>
+                Número de beeps que o buzzer fará.
+            </li>
+        </ul>
+
+        Esses valores foram definidos com #define, mas a sugestão do professor
+        foi utilizar variáveis para que eles possam ser modificados
+        dinamicamente pelo servidor na resposta da requisição.
+    </p>
+
+    <div style="text-align: center;">
+        <img src="imgs/request.png" alt="Circuit" width="500">
+    </div>
+
+    <h3>Bateria</h3>
+    <p>
+        Foi discutido qual tipo de bateria seria mais apropriada para ser
+        utilizada e como seria melhor para medir seu nível. A sugestão do
+        professor foi utilizar baterias de lítio em vez de alcalinas, mas
+        ainda foi possível definir qual utilizaremos. Cogita-se utilizar
+        baterias de caixas de fones de ouvidor se fore viáveis.
+    </p>
+    <p>
+        Ele também sugeriu fazer a medição com uma leitura analógica de um
+        divisor de tensão e também adicionar um diodo zener em paralelo com
+        o resistor cuja tensão será medida para garantir que o pino do
+        microcontrolador não receba acima de 3.3V. Isso foi implementado com
+        sucesso utilizando um resistor de 1k em paralelo com o diodo e em série
+        com um de 3.3k. Esses valores foram escolhidos porque a bateria de
+        teste foi uma alcalina de 9V, sendo então adequado medir o valor de
+        aproximadamente 1/3 da tensão da bateria. Mas eles irão mudar conforme
+        a bateria que for escolhida.
+    </p>
+
+    <div style="text-align: center;">
+        <img src="imgs/circuit.jpg" alt="Request" width="400">
+    </div>
+
+    <h2>Referências</h2>
+    <ul>
+        <li>
+            <a href=https://www.youtube.com/watch?v=s_2cw0k6lgs>
+            ESP32 Arduino: HTTP GET Requests
+            </a>
+        </li>
+        <li>
+            <a href=https://www.youtube.com/watch?v=LiQaPJ9UrSM>
+            ESP32 Arduino: HTTP POST Requests
+            </a>
+        </li>
+    </ul>
+</body>
+</html>
+
