@@ -2,7 +2,7 @@ import os
 
 import sqlite3
 import uvicorn
-from fastapi import FastAPI, Form
+from fastapi import FastAPI, Form, HTTPException
 from fastapi.responses import HTMLResponse, Response, RedirectResponse
 from pydantic import BaseModel
 
@@ -88,7 +88,17 @@ async def get_look():
     query = "SELECT * FROM alerts"
     html_table = create_html_table(query)
     return HTMLResponse(
-        content=f"<h1>Alertas</h1>{html_table}"
+        content=f"""
+        <html>
+            <head>
+                <title>Alertas</title>
+            </head>
+            <body>
+                <h1>Alertas</h1>
+                {html_table}
+            </body>
+        </html>
+        """
     )
 
 @app.get("/items", response_class=HTMLResponse)
@@ -96,7 +106,17 @@ async def get_items():
     query = "SELECT * FROM items"
     html_table = create_html_table(query)
     return HTMLResponse(
-        content=f"<h1>Itens</h1>{html_table}"
+        content=f"""
+        <html>
+            <head>
+                <title>Itens</title>
+            </head>
+            <body>
+                <h1>Itens</h1>
+                {html_table}
+            </body>
+        </html>
+        """
     )
 
 
@@ -129,14 +149,13 @@ async def alert(alert: Alert):
 async def register(
     id:          int = Form(...),
     room:        str = Form(...),
-    description: str = Form()
+    description: str = Form(...)
 ):
     item: Item = Item(
         id=id,
         room=room,
         description=description
     )
-    print(item)
 
     with sqlite3.connect(db_path, timeout=60) as con:
         cur = con.cursor()
@@ -154,8 +173,11 @@ async def register(
                  item.description)
             )
         except sqlite3.IntegrityError:
-            print("Error: ID already exists")
-            # TODO: add error response
+            # TODO: show error in page
+            raise HTTPException(
+                detail="ID already exists",
+                status_code=422
+            )
 
         con.commit()
 
@@ -163,8 +185,36 @@ async def register(
     return RedirectResponse(url="/", status_code=303)
 
 @app.post("/update")
-async def update(id: int = Form(...)):
-    print(id)
+async def update(
+    id:          int = Form(...),
+    room:        str = Form(...),
+    description: str = Form(...)
+):
+    if room == "":
+        raise HTTPException(
+            detail="Room is empty",
+            status_code=422
+        )
+
+    with sqlite3.connect(db_path) as con:
+        cur = con.cursor()
+        cur.execute("""
+            UPDATE items
+            SET room = ?,
+                description = ?
+            WHERE id = ?
+            """,
+            (room,
+             description,
+             id)
+        )
+        if cur.rowcount == 0:
+            raise HTTPException(
+                detail="Item not found",
+                status_code=404
+            )
+
+    return RedirectResponse(url="/", status_code=303)
 
 
 if __name__ == "__main__":
