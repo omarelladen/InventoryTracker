@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS
 alerts
 (
     id         INTEGER PRIMARY KEY AUTOINCREMENT,
-    board_id   INTEGER REFERENCES items(board_id),
+    item_id    INTEGER REFERENCES items(id),
     status     TEXT DEFAULT '',
     battery    INTEGER DEFAULT 0,
     boot_count INTEGER DEFAULT 0,
@@ -18,7 +18,7 @@ alerts
 CREATE TABLE IF NOT EXISTS
 items
 (
-    board_id    INTEGER PRIMARY KEY,
+    id          INTEGER PRIMARY KEY,
     room        TEXT DEFAULT '',
     description TEXT DEFAULT ''
 );

@@ -22,7 +22,7 @@
 
 #define URL "http://192.168.100.40:8000/alert"  // "http://jsonplaceholder.typicode.com/posts"
 
-#define BOARD_ID 0
+#define ITEM_ID 0
 
 // TODO: use vars instead of defines to change based on server response
 
@@ -83,7 +83,7 @@ bool post_data(int battery_level)
             HTTPClient http;
             http.begin(URL);
 
-            String body = "{\"board_id\":" + String(BOARD_ID) + "," \
+            String body = "{\"item_id\":" + String(ITEM_ID) + "," \
                           + "\"status\":\"alert\"," \
                           + "\"battery\":" + String(battery_level) + "," \
                           + "\"boot_count\":" + String(fast_wakeup_count) \

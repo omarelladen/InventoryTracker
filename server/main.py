@@ -9,13 +9,13 @@ from pydantic import BaseModel
 
 
 class Alert(BaseModel):
-    board_id:   int
+    item_id:    int
     status:     str
     battery:    int
     boot_count: int
 
 class Item(BaseModel):
-    board_id:    int
+    id:          int
     room:        str
     description: str
 
@@ -53,13 +53,13 @@ async def alert(alert: Alert):
 
         cur.execute("""
             INSERT INTO alerts
-            (board_id,
+            (item_id,
              status,
              battery,
              boot_count)
             VALUES (?, ?, ?, ?)
             """,
-            (alert.board_id,
+            (alert.item_id,
              alert.status,
              alert.battery,
              alert.boot_count)
@@ -71,12 +71,12 @@ async def alert(alert: Alert):
 
 @app.post("/register")
 async def register(
-    board_id:    int = Form(...),
+    id:          int = Form(...),
     room:        str = Form(...),
     description: str = Form(...)
 ):
     item: Item = Item(
-        board_id=board_id,
+        id=id,
         room=room,
         description=description
     )
@@ -88,12 +88,12 @@ async def register(
         try:
             cur.execute("""
                 INSERT INTO items
-                (board_id,
+                (id,
                  room,
                  description)
                 VALUES (?, ?, ?)
                 """,
-                (item.board_id,
+                (item.id,
                  item.room,
                  item.description)
             )
