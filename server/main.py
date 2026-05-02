@@ -1,11 +1,15 @@
 import os
 
 import sqlite3
-
 import uvicorn
 from fastapi import FastAPI, Form
 from fastapi.responses import HTMLResponse, Response, RedirectResponse
 from pydantic import BaseModel
+
+
+db_path = "db.sqlite3"
+
+app = FastAPI()
 
 
 class Alert(BaseModel):
@@ -20,7 +24,37 @@ class Item(BaseModel):
     description: str
 
 
-app = FastAPI()
+def create_html_table(query):
+    with sqlite3.connect(db_path, timeout=60) as con:
+        cur = con.cursor()
+        cur.execute(query)
+
+        list_items = cur.fetchall()
+        list_headers = [d[0] for d in cur.description]
+
+    list_html_lines = []
+    for item in list_items:
+        cells = "".join([f"<td>{v}</td>" for v in item])
+        list_html_lines.append(f"<tr>{cells}</tr>")
+
+    list_html_headers = []
+    for i in list_headers:
+        list_html_headers.append(f"<th>{i}</th>")
+
+    html_table = f"""
+    <table border="1" style="border-collapse: collapse; width: 100%;">
+        <thead>
+            <tr>
+                {"".join(list_html_headers)}
+            </tr>
+        </thead>
+        <tbody>
+            {"".join(list_html_lines)}
+        </tbody>
+    </table>
+    """
+
+    return html_table
 
 
 @app.get("/favicon.ico", include_in_schema=False)
@@ -37,18 +71,40 @@ async def get_index():
         content = f.read()
     return HTMLResponse(content=content)
 
-@app.get("/register.html", response_class=HTMLResponse)
+@app.get("/register", response_class=HTMLResponse)
 async def get_register():
     with open("register.html", "r", encoding="utf-8") as f:
         content = f.read()
     return HTMLResponse(content=content)
+
+@app.get("/update", response_class=HTMLResponse)
+async def get_update():
+    with open("update.html", "r", encoding="utf-8") as f:
+        content = f.read()
+    return HTMLResponse(content=content)
+
+@app.get("/alerts", response_class=HTMLResponse)
+async def get_look():
+    query = "SELECT * FROM alerts"
+    html_table = create_html_table(query)
+    return HTMLResponse(
+        content=f"<h1>Alertas</h1>{html_table}"
+    )
+
+@app.get("/items", response_class=HTMLResponse)
+async def get_items():
+    query = "SELECT * FROM items"
+    html_table = create_html_table(query)
+    return HTMLResponse(
+        content=f"<h1>Itens</h1>{html_table}"
+    )
 
 
 @app.post("/alert")
 async def alert(alert: Alert):
     print(alert)
 
-    with sqlite3.connect("db.sqlite3", timeout=60) as con:
+    with sqlite3.connect(db_path, timeout=60) as con:
         cur = con.cursor()
 
         cur.execute("""
@@ -73,7 +129,7 @@ async def alert(alert: Alert):
 async def register(
     id:          int = Form(...),
     room:        str = Form(...),
-    description: str = Form(...)
+    description: str = Form()
 ):
     item: Item = Item(
         id=id,
@@ -82,7 +138,7 @@ async def register(
     )
     print(item)
 
-    with sqlite3.connect("db.sqlite3", timeout=60) as con:
+    with sqlite3.connect(db_path, timeout=60) as con:
         cur = con.cursor()
 
         try:
@@ -105,6 +161,10 @@ async def register(
 
     # TODO: show success msg
     return RedirectResponse(url="/", status_code=303)
+
+@app.post("/update")
+async def update(id: int = Form(...)):
+    print(id)
 
 
 if __name__ == "__main__":
