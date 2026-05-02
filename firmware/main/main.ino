@@ -20,7 +20,7 @@
 #define NW_SSID ""
 #define NW_PASSWORD ""
 
-#define URL "http://jsonplaceholder.typicode.com/posts"
+#define URL "http://192.168.100.40:8000/alert"  // "http://jsonplaceholder.typicode.com/posts"
 
 #define BOARD_ID 0
 
@@ -185,7 +185,8 @@ void setup()
 
 
     boot_count++;
-    Serial.println("Boot num: " + String(boot_count));
+    Serial.print("Boot num: ");
+    Serial.println(boot_count);
 
     digitalWrite(PIN_LED, HIGH);
     delay(200);
