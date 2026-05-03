@@ -72,7 +72,7 @@ bool connect_wifi(time_t *time_now)
     return true;
 }
 
-bool post_data(int battery_level)
+bool post_data(int battery_level, String status)
 {
     for (int i=0; i < NUM_POST_TRIES; i++)
     {
@@ -83,9 +83,9 @@ bool post_data(int battery_level)
             HTTPClient http;
             http.begin(URL);
 
-            String body = "{\"item_id\":" + String(ITEM_ID) + "," \
-                          + "\"status\":\"alert\"," \
-                          + "\"battery\":" + String(battery_level) + "," \
+            String body = "{\"item_id\":"     + String(ITEM_ID)       + "," \
+                          + "\"status\":"     + "\"" + status + "\""  + "," \
+                          + "\"battery\":"    + String(battery_level) + "," \
                           + "\"boot_count\":" + String(fast_wakeup_count) \
                           + "}";
 
@@ -153,6 +153,12 @@ void setup()
     Serial.print("Diff: ");
     Serial.println(time_diff);
 
+    if (boot_count == 0)
+    {
+        if (connect_wifi(&time_now))
+            post_data(battery_level, "reset");
+    }
+
     if (time_diff < TIME_LIM_REP_S)
     {
         fast_wakeup_count++;
@@ -164,8 +170,6 @@ void setup()
         // Reset count
         fast_wakeup_count = 1;
         Serial.println("Normal wakeup");
-
-        // TODO: try to connect to Wi-Fi and send basic alert or store info
     }
 
 
@@ -178,7 +182,7 @@ void setup()
 
         // Try to connect to Wi-Fi and send risk alert
         if (connect_wifi(&time_now))
-            post_data(battery_level);
+            post_data(battery_level, "risk");
     }
 
     // TODO: prepare wakeup at a determined time for daily ping or retry
