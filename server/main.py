@@ -1,10 +1,10 @@
 import os
-
 import sqlite3
+
 import uvicorn
+from pydantic import BaseModel
 from fastapi import FastAPI, Form, HTTPException
 from fastapi.responses import HTMLResponse, Response, RedirectResponse
-from pydantic import BaseModel
 
 
 db_path = "db.sqlite3"
@@ -57,11 +57,15 @@ def create_html_table(query):
     return html_table
 
 
+@app.head("/", include_in_schema=False)
+async def head_root():
+    pass
+
 @app.get("/favicon.ico", include_in_schema=False)
 async def get_favicon():
     return Response(status_code=204)  # FileResponse("favicon.ico")
 
-@app.get("/")
+@app.get("/", response_class=HTMLResponse)
 async def get_root():
     return await get_index()
 
