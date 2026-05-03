@@ -58,11 +58,11 @@ def create_html_table(query):
 
 
 @app.get("/favicon.ico", include_in_schema=False)
-async def favicon():
+async def get_favicon():
     return Response(status_code=204)  # FileResponse("favicon.ico")
 
 @app.get("/")
-async def root():
+async def get_root():
     return await get_index()
 
 @app.get("/index.html", response_class=HTMLResponse)
@@ -121,7 +121,7 @@ async def get_items():
 
 
 @app.post("/alert")
-async def alert(alert: Alert):
+async def post_alert(alert: Alert):
     print(alert)
 
     with sqlite3.connect(db_path, timeout=60) as con:
@@ -146,7 +146,7 @@ async def alert(alert: Alert):
     return alert
 
 @app.post("/register")
-async def register(
+async def post_register(
     id:          int = Form(...),
     room:        str = Form(...),
     description: str = Form(...)
@@ -185,7 +185,7 @@ async def register(
     return RedirectResponse(url="/", status_code=303)
 
 @app.post("/update")
-async def update(
+async def post_update(
     id:          int = Form(...),
     room:        str = Form(...),
     description: str = Form(...)
