@@ -1,0 +1,7 @@
+services:
+  api:
+    build: .
+    image: fastapi-inventory
+    container_name: inventory
+    ports:
+      - "8000:8000"
