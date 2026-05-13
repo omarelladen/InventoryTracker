@@ -1,11 +1,12 @@
 #include <WiFi.h>
 #include <HTTPClient.h>
 
+
 #define NW_SSID ""
 #define NW_PASSWORD ""
 
-#define URL "http://10.190.26.104/send/cli"
-#define BODY "msg=ESP32 to ESP8266"
+#define URL "http://jsonplaceholder.typicode.com/posts"
+#define BODY "{\"item_id\":0}"
 
 
 void setup()
@@ -35,7 +36,7 @@ void loop()
     {
         HTTPClient http;
         http.begin(URL);
-        http.addHeader("Content-Type", "text/plain");
+        http.addHeader("Content-Type", "application/json");
 
         Serial.println("POSTing");
         int http_response_code = http.POST(BODY);
