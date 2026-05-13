@@ -3,10 +3,19 @@
 #include <HTTPClient.h>
 
 
-#define PIN_WAKEUP 4
-#define PIN_LED 23
-#define PIN_BUZZER 22
-#define PIN_BATTERY 34
+#define S3 1
+
+#if S3  // Waveshare ESP32-S3-Zero
+    #define PIN_WAKEUP 4
+    #define PIN_LED 7
+    #define PIN_BUZZER 6
+    #define PIN_BATTERY 8
+#else   // DOIT ESP32 DEVKIT V1
+    #define PIN_WAKEUP 4
+    #define PIN_LED 23
+    #define PIN_BUZZER 22
+    #define PIN_BATTERY 34
+#endif
 
 #define TIME_LIM_REP_S 10
 #define ALERT_REP_COUNT 3
@@ -20,7 +29,8 @@
 #define NW_SSID ""
 #define NW_PASSWORD ""
 
-#define URL "http://192.168.100.40:8000/alert"  // "http://jsonplaceholder.typicode.com/posts"
+#define URL "http://10.255.132.80:8000/alert"
+         // "http://192.168.100.40:8000/alert"
 
 #define ITEM_ID 0
 
@@ -47,7 +57,6 @@ bool connect_wifi(time_t *time_now)
 {
     WiFi.begin(NW_SSID, NW_PASSWORD);
 
-    // TODO: set timeout
     time(time_now);
     unsigned long time_start = *time_now;
 
