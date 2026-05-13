@@ -1,8 +1,8 @@
-#define wakeupPin 4
-#define ledPin 23
+#define PIN_WAKEUP 4
+#define PIN_LED 7
 
 
-RTC_DATA_ATTR int bootCount = 0;
+RTC_DATA_ATTR int boot_count = 0;
 
 
 void setup()
@@ -10,19 +10,19 @@ void setup()
     Serial.begin(115200);
     delay(2000);
 
-    pinMode(wakeupPin, INPUT_PULLUP);
-    pinMode(ledPin, OUTPUT);
+    pinMode(PIN_WAKEUP, INPUT_PULLUP);
+    pinMode(PIN_LED, OUTPUT);
 
 
-    bootCount++;
-    Serial.println("Boot num: " + String(bootCount));
+    boot_count++;
+    Serial.println("Boot num: " + String(boot_count));
 
-    digitalWrite(ledPin, HIGH);
+    digitalWrite(PIN_LED, HIGH);
 
-    esp_sleep_enable_ext0_wakeup((gpio_num_t)wakeupPin, LOW);
+    esp_sleep_enable_ext0_wakeup((gpio_num_t)PIN_WAKEUP, LOW);
     delay(1000);  // delay to avoid multiple presses
 
-    digitalWrite(ledPin, LOW);
+    digitalWrite(PIN_LED, LOW);
 
 
     Serial.println("Going to sleep now");

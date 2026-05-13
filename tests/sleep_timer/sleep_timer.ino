@@ -1,8 +1,8 @@
 #define TIME_TO_SLEEP 5  // s
-#define uS_TO_S_FACTOR 1000000  // us2s
+#define US_TO_S_FACTOR 1000000  // us2s
 
 
-RTC_DATA_ATTR int bootCount = 0;
+RTC_DATA_ATTR int boot_count = 0;
 
 
 void setup()
@@ -11,10 +11,10 @@ void setup()
     delay(2000);
 
 
-    bootCount++;
-    Serial.println("Boot num: " + String(bootCount));
+    boot_count++;
+    Serial.println("Boot num: " + String(boot_count));
 
-    esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP * uS_TO_S_FACTOR);
+    esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP * US_TO_S_FACTOR);
 
 
     Serial.println("Going to sleep now");
@@ -25,5 +25,5 @@ void setup()
 
 void loop()
 {
-    // This is not going to be called
+    // not called
 }
