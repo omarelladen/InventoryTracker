@@ -62,7 +62,7 @@
 
 RTC_DATA_ATTR int boot_count = 0;
 RTC_DATA_ATTR int fast_wakeup_count = 0;
-RTC_DATA_ATTR unsigned long last_time_awake = 0;
+RTC_DATA_ATTR time_t last_time_awake = 0;
 
 
 void beep_buzzer()
@@ -81,7 +81,7 @@ bool connect_wifi(time_t *time_now)
     WiFi.begin(NW_SSID, NW_PASSWORD);
 
     time(time_now);
-    unsigned long time_start = *time_now;
+    time_t time_start = *time_now;
 
     PRINTLN("Connecting");
     while(WiFi.status() != WL_CONNECTED)
@@ -177,7 +177,7 @@ void setup()
     time_t time_now;
     time(&time_now);
 
-    unsigned long time_diff = time_now - last_time_awake;
+    time_t time_diff = time_now - last_time_awake;
 
     PRINT("Time: ");
     PRINTLN(time_now);
