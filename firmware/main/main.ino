@@ -3,7 +3,24 @@
 #include <HTTPClient.h>
 
 
-#define S3 1
+#define DEBUG false
+
+#if DEBUG
+    #define PRINT(x)        Serial.print(x)
+    #define PRINTLN(x)      Serial.println(x)
+    #define SERIAL_BEGIN(r) Serial.begin(r)
+    #define DELAY(t)        delay(t)
+    #define SERIAL_FLUSH()  Serial.flush()
+#else
+    #define PRINT(x)
+    #define PRINTLN(x)
+    #define SERIAL_BEGIN(r)
+    #define DELAY(t)
+    #define SERIAL_FLUSH()
+#endif
+
+
+#define S3 false
 
 #if S3  // Waveshare ESP32-S3-Zero
     #define PIN_WAKEUP 4
@@ -17,20 +34,26 @@
     #define PIN_BATTERY 34
 #endif
 
+
 #define TIME_LIM_REP_S 10
 #define ALERT_REP_COUNT 3
 
 #define NUM_POST_TRIES 3
 #define TIMEOUT_WIFI_S 10
+#define NW_CHECK_DELAY 300
 
 #define NUM_BEEPS 3
 #define BEEP_DELAY 200
 
+#define LED_DELAY 100
+
+#define BAUD_RATE 115200
+
 #define NW_SSID ""
 #define NW_PASSWORD ""
 
-#define URL "http://10.255.132.80:8000/alert"
-         // "http://192.168.100.40:8000/alert"
+#define URL "http://192.168.100.40:8000/alert"
+         // "http://10.255.132.80:8000/alert"
 
 #define ITEM_ID 0
 
@@ -60,23 +83,24 @@ bool connect_wifi(time_t *time_now)
     time(time_now);
     unsigned long time_start = *time_now;
 
-    Serial.println("Connecting");
+    PRINTLN("Connecting");
     while(WiFi.status() != WL_CONNECTED)
     {
-        delay(500);
-        Serial.print(F("."));
+        delay(NW_CHECK_DELAY);
+        PRINT(".");
 
         time(time_now);
         if (*time_now - time_start > TIMEOUT_WIFI_S)
         {
-            Serial.println("Timeout");
+            PRINTLN("Timeout");
+            // TODO: save msg in a buffer and send later
             return false;
         }
     }
 
-    Serial.println("Connected");
-    Serial.print("IP: ");
-    Serial.println(WiFi.localIP());
+    PRINTLN("Connected");
+    PRINT("IP: ");
+    PRINTLN(WiFi.localIP());
 
     return true;
 }
@@ -85,7 +109,7 @@ bool post_data(int battery_level, String status)
 {
     for (int i=0; i < NUM_POST_TRIES; i++)
     {
-        Serial.println("Will try to POST");
+        PRINTLN("Will try to POST");
 
         if (WiFi.status() == WL_CONNECTED)
         {
@@ -100,32 +124,32 @@ bool post_data(int battery_level, String status)
 
             http.addHeader("Content-Type", "application/json");
 
-            Serial.println("POSTing");
+            PRINTLN("POSTing");
             int http_response_code = http.POST(body);
 
             if (http_response_code > 0)
             {
                 String response = http.getString();
 
-                Serial.println("Success sending POST");
-                Serial.print("Response code: ");
-                Serial.println(http_response_code);
-                Serial.print("Response: ");
-                Serial.println(response);
+                PRINTLN("Success sending POST");
+                PRINT("Response code: ");
+                PRINTLN(http_response_code);
+                PRINT("Response: ");
+                PRINTLN(response);
 
                 http.end();
                 return true;
             }
 
-            Serial.println("Error sending POST");
-            Serial.print("Response code: ");
-            Serial.println(http_response_code);
+            PRINTLN("Error sending POST");
+            PRINT("Response code: ");
+            PRINTLN(http_response_code);
 
             http.end();
         }
         else
         {
-            Serial.println("Error in connection");
+            PRINTLN("Error in connection");
         }
     }
 
@@ -134,8 +158,8 @@ bool post_data(int battery_level, String status)
 
 void setup()
 {
-    Serial.begin(115200);
-    delay(1500);
+    SERIAL_BEGIN(BAUD_RATE);
+    DELAY(1500);
 
     pinMode(PIN_WAKEUP, INPUT_PULLUP);
     pinMode(PIN_LED,    OUTPUT);
@@ -146,8 +170,8 @@ void setup()
 
     // Read battery level
     int battery_level = analogRead(PIN_BATTERY);
-    Serial.print("Battery: ");
-    Serial.println(battery_level);
+    PRINT("Battery: ");
+    PRINTLN(battery_level);
 
 
     time_t time_now;
@@ -155,12 +179,12 @@ void setup()
 
     unsigned long time_diff = time_now - last_time_awake;
 
-    Serial.print("Time: ");
-    Serial.println(time_now);
-    Serial.print("Last time awake: ");
-    Serial.println(last_time_awake);
-    Serial.print("Diff: ");
-    Serial.println(time_diff);
+    PRINT("Time: ");
+    PRINTLN(time_now);
+    PRINT("Last time awake: ");
+    PRINTLN(last_time_awake);
+    PRINT("Diff: ");
+    PRINTLN(time_diff);
 
     if (boot_count == 0)
     {
@@ -171,21 +195,19 @@ void setup()
     if (time_diff < TIME_LIM_REP_S)
     {
         fast_wakeup_count++;
-        Serial.print("Repeated wakeup! Count: ");
-        Serial.println(fast_wakeup_count);
+        PRINT("Repeated wakeup! Count: ");
+        PRINTLN(fast_wakeup_count);
     }
     else
     {
         // Reset count
         fast_wakeup_count = 1;
-        Serial.println("Normal wakeup");
+        PRINTLN("Normal wakeup");
     }
 
 
-    if (fast_wakeup_count > ALERT_REP_COUNT)  // repeated event
+    if (fast_wakeup_count > ALERT_REP_COUNT)
     {
-        Serial.println("WARNING: repeated wakeup!");
-
         // Alert
         beep_buzzer();
 
@@ -198,19 +220,17 @@ void setup()
 
 
     boot_count++;
-    Serial.print("Boot num: ");
-    Serial.println(boot_count);
+    PRINT("Boot num: ");
+    PRINTLN(boot_count);
 
     digitalWrite(PIN_LED, HIGH);
-    delay(200);
-    digitalWrite(PIN_LED, LOW);
-    delay(200);
+    delay(LED_DELAY);
 
 
     // Sleep
 
-    Serial.println("Going to sleep now");
-    Serial.flush();
+    PRINTLN("Going to sleep now");
+    SERIAL_FLUSH();
 
     time(&time_now);
     last_time_awake = time_now;
