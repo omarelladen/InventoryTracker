@@ -54,8 +54,8 @@
 #define NW_SSID ""
 #define NW_PASSWORD ""
 
-#define URL "http://192.168.100.40:8000/alert"
-         // "http://10.255.132.80:8000/alert"
+#define URL "http://10.255.132.80:8000/alert"
+         // "http://192.168.100.40:8000/alert"
 
 #define ITEM_ID 0
 
@@ -172,6 +172,10 @@ bool post_data(int battery_level, String status)
                 PRINTLN(response);
 
                 int next_wakeup = get_json_value(response, NEXT_WAKEUP_FIELD);
+                if (next_wakeup > 0)
+                {
+                    esp_sleep_enable_timer_wakeup(next_wakeup * 1000000);  // s
+                }
 
                 http.end();
                 return true;
