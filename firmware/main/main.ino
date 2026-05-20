@@ -3,7 +3,7 @@
 #include <HTTPClient.h>
 
 
-#define DEBUG false
+#define DEBUG true
 
 #if DEBUG
     #define PRINT(x)        Serial.print(x)
@@ -48,6 +48,8 @@
 #define LED_DELAY 100
 
 #define BAUD_RATE 115200
+
+#define NEXT_WAKEUP_FIELD "\"next_wakeup\":"
 
 #define NW_SSID ""
 #define NW_PASSWORD ""
@@ -105,6 +107,38 @@ bool connect_wifi(time_t *time_now)
     return true;
 }
 
+int get_json_value(String response, String field)
+{
+    int pos_init_field = response.indexOf(field);
+    if (pos_init_field != -1)
+    {
+        int pos_init_value = pos_init_field + field.length();
+
+        int pos_end_value = response.indexOf(",", pos_init_value);
+        if (pos_end_value == -1)
+            pos_end_value = response.indexOf("}", pos_init_value);
+
+        if (pos_end_value != -1)
+        {
+            String field_value = response.substring(pos_init_value, pos_end_value);
+            field_value.trim();
+
+            int next_wakeup = field_value.toInt();
+
+            PRINT("found value ");
+            PRINT(next_wakeup);
+            PRINT(" for field ");
+            PRINTLN(field);
+
+            return next_wakeup;
+        }
+    }
+
+    PRINT(field);
+    PRINTLN(" not found");
+    return -1;
+}
+
 bool post_data(int battery_level, String status)
 {
     for (int i=0; i < NUM_POST_TRIES; i++)
@@ -136,6 +170,8 @@ bool post_data(int battery_level, String status)
                 PRINTLN(http_response_code);
                 PRINT("Response: ");
                 PRINTLN(response);
+
+                int next_wakeup = get_json_value(response, NEXT_WAKEUP_FIELD);
 
                 http.end();
                 return true;
@@ -206,7 +242,7 @@ void setup()
     }
 
 
-    if (fast_wakeup_count > ALERT_REP_COUNT)
+    if (fast_wakeup_count > ALERT_REP_COUNT)  // TODO: combine time + rep to judge
     {
         // Alert
         beep_buzzer();

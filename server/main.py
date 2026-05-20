@@ -147,7 +147,8 @@ async def post_alert(alert: Alert):
 
         con.commit()
 
-    return alert
+    next_wakeup = 40
+    return {"next_wakeup": next_wakeup}
 
 @app.post("/register")
 async def post_register(
