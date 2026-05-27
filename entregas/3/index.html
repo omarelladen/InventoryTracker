@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Entrega 2</title>
+</head>
+<body>
+    <h1>Entrega 3</h1>
+
+    <h2>Objetivos</h2>
+    <ul>
+      <li>Modelar banco de dados</li>
+      <li>Criar scripts de setup</li>
+      <li>Criar contêiner para executar o FastAPI</li>
+      <li>Criar endpoint para cadastro de item</li>
+      <li>Criar endpoint para atualização de dados de item</li>
+      <li>Criar endpoint para receber ping diário</li>
+      <li>Criar endpoint para receber alertas de movimento</li>
+      <li>Criar homepage para acessar dados</li>
+      <li>Criar e testar fila de dados a serem escritos no banco</li>
+      <li>Testar endpoint de ping com esp</li>
+      <li>Testar endpoint com alarme</li>
+    </ul>
+
+    <h2>Desenvolvimento</h2>
+
+    <h3>Servidor</h3>
+    <p>
+        Foi possível implementar como planejado o servidor utilizando o framework
+        FastAPI, já dentro de um contêiner Docker e utilizando scripts para
+        facilitar a reprodução do ambiente. No servidor, foram criadas páginas
+        simples com formulário para cadastro e atualização de itens e para
+        visualização das tabelas de itens e alertas que estão armazenados no
+        banco de dados SQLite.
+    </p>
+
+    <div style="text-align: center;">
+        <img src="imgs/home.png" alt="Home" width="400">
+    </div>
+    <div style="text-align: center;">
+        <img src="imgs/register.png" alt="Register" width="300">
+        <img src="imgs/update.png" alt="Update" width="300">
+    </div>
+    <div style="text-align: center;">
+        <img src="imgs/items.png" alt="Items" width="400">
+        <img src="imgs/alerts.png" alt="Alerts" width="400">
+        <img src="imgs/all.png" alt="All" width="400">
+    </div>
+
+    <p>
+        Para este projeto, não parece ser necessário criar explicitamente uma fila
+        para escrita no banco, pois o timeout de espera do SQLITE e
+        escalonamento de acordamentos deve bastar.
+    </p>
+    <p>
+        Um único endpoint foi criado para receber requisições do microcontrolador,
+        sendo diferenciados por um campo de texto do JSON. Foi adicionada uma string
+        específica para quando o ESP for resetado, para que se possa saber quando
+        ele foi primeiramente ligado e se houve interrompimento na alimentação.
+    </p>
+    <p>
+        Em relação ao ping, ainda não foi implementada a identificação, restando
+        adicionar uma lógica para usar funções do próprio ESP para se saber se
+        o acordamento veio da temporização ou do pino do sensor.
+    </p>
+    <p>
+        O acordamento temporizado já está sendo utilizado, de forma que o servidor
+        envia um intervalo fixo em segundos até o próximo acordamento e o
+        microcontrolador consegue extrair esse dado. Resta então criar um algoritmo
+        para se calcular um intervalo customizado com base no histórico de alertas
+        no banco, o que foi pensado e discutido no último encontro.
+    </p>
+
+    <div style="text-align: center;">
+        <video src="vids/server.mp4" controls width="400"></video>
+    </div>
+
+    <h3>ESP Super Mini</h3>
+    <p>
+        Durante as semanas de desenvolvimento, chegou a encomenda de algumas
+        placas Super Mini com um ESP32-S3, que foi comprado com o objetivo
+        de redução de espaço. Foi possível reproduzir com sucesso o circuito
+        e código que estava sendo usado com uma placa de desenvolvimento padrão
+        (DOIT DEVKIT V1). Ainda, por o S3 ser mais novo, ele promete consumir
+        menos energia.
+    </p>
+
+    <div style="text-align: center;">
+        <img src="imgs/doit_vs_mini.jpg" alt="DOIT vs Mini" width="400">
+    </div>
+
+    <div style="text-align: center;">
+        <img src="imgs/down_mini.jpg" alt="Down Mini" width="400">
+    </div>
+
+    <h3>Acelerômetro LIS2DSH</h3>
+    <p>
+       Outra encomenda que chegou foi o acelerômetro, que foi comprado por ser
+       de baixíssimo consumo de energia e possibilitar uma melhor identificação
+       de movimento. Um problema que foi encontrado é que o modelo não é o que
+       mostra na serigrafia (LIS2DH), mas sim um LIS2SDH. Mesmo assim, foi
+       possível testar o funcionamento através de verificação contínua. Porém,
+       ainda não conseguimos utilizar os pinos de interrupçaõ que seria
+       necessário para o projeto, por ter uma configuração complexa especificado
+       em um datasheet da ST e não terem sido encontrados exemplos na internet
+       para o modelo específico.
+    </p>
+
+    <div style="text-align: center;">
+        <video src="vids/accel.mp4" controls width="400"></video>
+    </div>
+
+
+    <h2>Referências</h2>
+    <ul>
+        <li>
+            <a href=https://www.youtube.com/watch?v=Mi0RUUajJb0>
+            Placa Super Mini ESP32-C3: Detalhes e Primeiros Passos
+            </a>
+        </li>
+        <li>
+            <a href=https://www.youtube.com/watch?v=vzSIYjZ0eN0>
+            Como Configurar o ESP32-S3 Super Mini na Arduino IDE (Guia Rápido
+            </a>
+        </li>
+        <li>
+            <a href=https://fastapi.tiangolo.com/tutorial/first-steps/>
+            FastAPI First Steps
+            </a>
+        </li>
+    </ul>
+</body>
+</html>
+
