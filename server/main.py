@@ -88,7 +88,7 @@ async def get_update():
     return HTMLResponse(content=content)
 
 @app.get("/alerts", response_class=HTMLResponse)
-async def get_look():
+async def get_alerts():
     query = "SELECT * FROM alerts"
     html_table = create_html_table(query)
     return HTMLResponse(
@@ -99,6 +99,24 @@ async def get_look():
             </head>
             <body>
                 <h1>Alertas</h1>
+                {html_table}
+            </body>
+        </html>
+        """
+    )
+
+@app.get("/all", response_class=HTMLResponse)
+async def get_all():
+    query = "SELECT * FROM alerts LEFT JOIN items"
+    html_table = create_html_table(query)
+    return HTMLResponse(
+        content=f"""
+        <html>
+            <head>
+                <title>Tudo</title>
+            </head>
+            <body>
+                <h1>Todos os dados</h1>
                 {html_table}
             </body>
         </html>
