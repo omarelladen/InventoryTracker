@@ -8,6 +8,7 @@ from fastapi.responses import HTMLResponse, Response, RedirectResponse
 
 
 db_path = "db.sqlite3"
+timezone = "-3"
 
 app = FastAPI()
 
@@ -89,7 +90,7 @@ async def get_update():
 
 @app.get("/alerts", response_class=HTMLResponse)
 async def get_alerts():
-    query = "SELECT * FROM alerts"
+    query = "SELECT *, datetime(datetime, '-3 hours') AS localtime FROM alerts"
     html_table = create_html_table(query)
     return HTMLResponse(
         content=f"""
@@ -107,7 +108,11 @@ async def get_alerts():
 
 @app.get("/all", response_class=HTMLResponse)
 async def get_all():
-    query = "SELECT * FROM alerts LEFT JOIN items"
+    query = """
+        SELECT *, datetime(datetime, '-3 hours') AS localtime
+        FROM alerts
+        LEFT JOIN items
+    """
     html_table = create_html_table(query)
     return HTMLResponse(
         content=f"""
