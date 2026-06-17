@@ -148,7 +148,7 @@ async def get_items():
 
 @app.get("/next_wakeups", response_class=HTMLResponse)
 async def get_items():
-    query = "SELECT * FROM next_wakeups"
+    query = "SELECT *, datetime(datetime, '-3 hours') AS localtime FROM next_wakeups"
     html_table = create_html_table(query)
     return HTMLResponse(
         content=f"""
@@ -168,6 +168,8 @@ async def get_items():
 async def post_alert(alert: Alert):
     print(alert)
 
+    # TODO: query next_wakeups to choose the best time
+    #       and check for items with no ping since yesterday
     next_wakeup = default_next_wakeup_s
 
     with sqlite3.connect(db_path, timeout=60) as con:
