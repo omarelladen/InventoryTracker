@@ -23,4 +23,11 @@ items
     description TEXT DEFAULT ''
 );
 
+CREATE TABLE IF NOT EXISTS
+next_wakeups
+(
+    item_id  INTEGER PRIMARY KEY REFERENCES items(id),
+    datetime DATETIME
+);
+
 EOF

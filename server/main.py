@@ -8,7 +8,7 @@ from fastapi.responses import HTMLResponse, Response, RedirectResponse
 
 
 db_path = "db.sqlite3"
-timezone = "-3"
+default_next_wakeup_s = 72000  # 20h
 
 app = FastAPI()
 
@@ -146,10 +146,29 @@ async def get_items():
         """
     )
 
+@app.get("/next_wakeups", response_class=HTMLResponse)
+async def get_items():
+    query = "SELECT * FROM next_wakeups"
+    html_table = create_html_table(query)
+    return HTMLResponse(
+        content=f"""
+        <html>
+            <head>
+                <title>Próximos Acordamentos</title>
+            </head>
+            <body>
+                <h1>Próximos Acordamentos</h1>
+                {html_table}
+            </body>
+        </html>
+        """
+    )
 
 @app.post("/alert")
 async def post_alert(alert: Alert):
     print(alert)
+
+    next_wakeup = default_next_wakeup_s
 
     with sqlite3.connect(db_path, timeout=60) as con:
         cur = con.cursor()
@@ -167,10 +186,17 @@ async def post_alert(alert: Alert):
              alert.battery,
              alert.boot_count)
         )
-
+        cur.execute("""
+            INSERT INTO next_wakeups (item_id, datetime)
+            VALUES (?, datetime('now', ?))
+            ON CONFLICT(item_id) DO UPDATE SET
+                datetime = excluded.datetime;
+            """,
+            (alert.item_id,
+             f"{next_wakeup} seconds")
+        )
         con.commit()
 
-    next_wakeup = 40
     return {"next_wakeup": next_wakeup}
 
 @app.post("/register")
