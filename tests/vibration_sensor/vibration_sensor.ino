@@ -12,7 +12,7 @@ void loop()
     int8_t sensor_read = digitalRead(PIN_D7);
     if (!sensor_read)
     {
-        Serial.println("1");
+        Serial.println(sensor_read);
         delay(100);
     }
 }
