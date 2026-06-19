@@ -3,4 +3,7 @@
 code=firmware/main/main.ino
 port=/dev/ttyUSB0
 
-arduino --upload "$code" --port "$port" --pref upload.speed=115200
+arduino \
+  --upload "$code" \
+  --port "$port" \
+  --pref upload.speed=115200
