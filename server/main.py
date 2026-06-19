@@ -1,4 +1,5 @@
 import os
+import random
 import sqlite3
 
 import uvicorn
@@ -8,16 +9,21 @@ from fastapi.responses import HTMLResponse, Response, RedirectResponse
 
 
 db_path = "db.sqlite3"
-default_next_wakeup_s = 72000  # 20h
+
+min_next_wakeup = 18*3600  # 18h
+max_next_wakeup = 21*3600  # 21h
+
 
 app = FastAPI()
 
 
 class Alert(BaseModel):
-    item_id:    int
-    status:     str
-    battery:    int
-    boot_count: int
+    item_id:          int
+    status:           str
+    battery:          int
+    boot_count:       int
+    rep_wakeup_count: int
+    bssid:            str
 
 class Item(BaseModel):
     id:          int
@@ -168,9 +174,7 @@ async def get_items():
 async def post_alert(alert: Alert):
     print(alert)
 
-    # TODO: query next_wakeups to choose the best time
-    #       and check for items with no ping since yesterday
-    next_wakeup = default_next_wakeup_s
+    next_wakeup = random.randint(min_next_wakeup, max_next_wakeup)
 
     with sqlite3.connect(db_path, timeout=60) as con:
         cur = con.cursor()
@@ -180,13 +184,17 @@ async def post_alert(alert: Alert):
             (item_id,
              status,
              battery,
-             boot_count)
-            VALUES (?, ?, ?, ?)
+             boot_count,
+             rep_wakeup_count,
+             bssid)
+            VALUES (?, ?, ?, ?, ?, ?)
             """,
             (alert.item_id,
              alert.status,
              alert.battery,
-             alert.boot_count)
+             alert.boot_count,
+             alert.rep_wakeup_count,
+             alert.bssid)
         )
         cur.execute("""
             INSERT INTO next_wakeups (item_id, datetime)

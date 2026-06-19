@@ -38,7 +38,7 @@
 #define TIME_LIM_REP_S 10
 #define ALERT_REP_COUNT 3
 
-#define NUM_POST_TRIES 3
+#define NUM_POST_TRIES 5
 #define TIMEOUT_WIFI_S 10
 #define NW_CHECK_DELAY 300
 
@@ -54,8 +54,8 @@
 #define NW_SSID ""
 #define NW_PASSWORD ""
 
-#define URL "http://10.255.132.80:8000/alert"
-         // "http://192.168.100.40:8000/alert"
+#define URL "http://192.168.100.40:8000/alert"
+         // "http://10.128.212.80:8000/alert"
 
 #define ITEM_ID 0
 
@@ -63,7 +63,7 @@
 
 
 RTC_DATA_ATTR int boot_count = 0;
-RTC_DATA_ATTR int fast_wakeup_count = 0;
+RTC_DATA_ATTR int rep_wakeup_count = 0;
 RTC_DATA_ATTR time_t last_time_awake = 0;
 
 
@@ -150,11 +150,14 @@ bool post_data(int battery_level, String status)
             HTTPClient http;
             http.begin(URL);
 
-            String body = "{\"item_id\":"     + String(ITEM_ID)       + "," \
-                          + "\"status\":"     + "\"" + status + "\""  + "," \
-                          + "\"battery\":"    + String(battery_level) + "," \
-                          + "\"boot_count\":" + String(fast_wakeup_count) \
-                          + "}";
+            String body =
+                "{\"item_id\":"           + String(ITEM_ID)          + "," \
+                + "\"status\":"           + "\"" + status + "\""     + "," \
+                + "\"battery\":"          + String(battery_level)    + "," \
+                + "\"boot_count\":"       + String(boot_count)       + "," \
+                + "\"rep_wakeup_count\":" + String(rep_wakeup_count) + "," \
+                + "\"bssid\":"            + "\"" + WiFi.BSSIDstr() + "\""  \
+                + "}";
 
             http.addHeader("Content-Type", "application/json");
 
@@ -234,19 +237,19 @@ void setup()
 
     if (time_diff < TIME_LIM_REP_S)
     {
-        fast_wakeup_count++;
+        rep_wakeup_count++;
         PRINT("Repeated wakeup! Count: ");
-        PRINTLN(fast_wakeup_count);
+        PRINTLN(rep_wakeup_count);
     }
     else
     {
         // Reset count
-        fast_wakeup_count = 1;
+        rep_wakeup_count = 1;
         PRINTLN("Normal wakeup");
     }
 
 
-    if (fast_wakeup_count > ALERT_REP_COUNT)  // TODO: combine time + rep to judge
+    if (rep_wakeup_count > ALERT_REP_COUNT)  // TODO: combine time + rep to judge
     {
         // Alert
         beep_buzzer();

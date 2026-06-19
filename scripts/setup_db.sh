@@ -7,12 +7,14 @@ sqlite3 "$db_file" <<EOF
 CREATE TABLE IF NOT EXISTS
 alerts
 (
-    id         INTEGER PRIMARY KEY AUTOINCREMENT,
-    item_id    INTEGER REFERENCES items(id),
-    status     TEXT DEFAULT '',
-    battery    INTEGER DEFAULT 0,
-    boot_count INTEGER DEFAULT 0,
-    datetime   DATETIME DEFAULT CURRENT_TIMESTAMP
+    id               INTEGER PRIMARY KEY AUTOINCREMENT,
+    item_id          INTEGER REFERENCES items(id),
+    status           TEXT DEFAULT '',
+    battery          INTEGER DEFAULT 0,
+    boot_count       INTEGER DEFAULT 0,
+    rep_wakeup_count INTEGER DEFAULT 0,
+    bssid            TEXT DEFAULT '',
+    datetime         DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS
