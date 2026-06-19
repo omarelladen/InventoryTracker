@@ -4,7 +4,6 @@
 
 
 #define DEBUG true
-
 #if DEBUG
     #define PRINT(x)        Serial.print(x)
     #define PRINTLN(x)      Serial.println(x)
@@ -19,9 +18,7 @@
     #define SERIAL_FLUSH()
 #endif
 
-
 #define S3 false
-
 #if S3  // Waveshare ESP32-S3-Zero
     #define PIN_WAKEUP 4
     #define PIN_LED 7
@@ -34,8 +31,9 @@
     #define PIN_BATTERY 34
 #endif
 
+#define WAKEUP_LEVEL HIGH
 
-#define TIME_LIM_REP_S 10
+#define MAX_TIME_REP_S 10
 #define ALERT_REP_COUNT 3
 
 #define NUM_POST_TRIES 5
@@ -201,6 +199,7 @@ bool post_data(int battery_level, String status)
 
 void setup()
 {
+
     SERIAL_BEGIN(BAUD_RATE);
     DELAY(1500);
 
@@ -208,7 +207,9 @@ void setup()
     pinMode(PIN_LED,    OUTPUT);
     pinMode(PIN_BUZZER, OUTPUT);
 
-    esp_sleep_enable_ext0_wakeup((gpio_num_t)PIN_WAKEUP, LOW);
+    esp_sleep_wakeup_cause_t wakeup_case = esp_sleep_get_wakeup_cause();
+
+    esp_sleep_enable_ext0_wakeup((gpio_num_t)PIN_WAKEUP, WAKEUP_LEVEL);
 
 
     // Read battery level
@@ -235,7 +236,13 @@ void setup()
             post_data(battery_level, "reset");
     }
 
-    if (time_diff < TIME_LIM_REP_S)
+    if (wakeup_case == ESP_SLEEP_WAKEUP_TIMER)
+    {
+        if (connect_wifi(&time_now))
+            post_data(battery_level, "ping");
+    }
+
+    if (time_diff < MAX_TIME_REP_S)
     {
         rep_wakeup_count++;
         PRINT("Repeated wakeup! Count: ");
@@ -249,9 +256,8 @@ void setup()
     }
 
 
-    if (rep_wakeup_count > ALERT_REP_COUNT)  // TODO: combine time + rep to judge
+    if (rep_wakeup_count > ALERT_REP_COUNT)  // TODO: debounce
     {
-        // Alert
         beep_buzzer();
 
         // Try to connect to Wi-Fi and send risk alert
