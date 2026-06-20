@@ -7,6 +7,11 @@ from pydantic import BaseModel
 from fastapi import FastAPI, Form, HTTPException
 from fastapi.responses import HTMLResponse, Response, RedirectResponse
 
+import platform
+from importlib.metadata import version
+
+
+__version__ = "0.1.0"
 
 db_path = "db.sqlite3"
 
@@ -14,7 +19,10 @@ min_next_wakeup = 18*3600  # 18h
 max_next_wakeup = 21*3600  # 21h
 
 
-app = FastAPI()
+app = FastAPI(
+    title="SIMPAT",
+    version=__version__
+)
 
 
 class Alert(BaseModel):
@@ -112,8 +120,8 @@ async def get_alerts():
         """
     )
 
-@app.get("/all", response_class=HTMLResponse)
-async def get_all():
+@app.get("/alerts_and_registrations", response_class=HTMLResponse)
+async def get_alerts_and_registrations():
     query = """
         SELECT *, datetime(datetime, '-3 hours') AS localtime
         FROM alerts
@@ -124,7 +132,7 @@ async def get_all():
         content=f"""
         <html>
             <head>
-                <title>Tudo</title>
+                <title>Alertas e Cadastros</title>
             </head>
             <body>
                 <h1>Todos os dados</h1>
@@ -170,10 +178,23 @@ async def get_items():
         """
     )
 
+@app.get("/about", response_class=HTMLResponse)
+async def server_about():
+    html_content = f"""
+    <!DOCTYPE html>
+    <html>
+        <body>
+            <p>
+                SIMPAT {__version__}
+            </p>
+        </body>
+    </html>
+    """
+    return HTMLResponse(content=html_content)
+
+
 @app.post("/alert")
 async def post_alert(alert: Alert):
-    print(alert)
-
     next_wakeup = random.randint(min_next_wakeup, max_next_wakeup)
 
     with sqlite3.connect(db_path, timeout=60) as con:
@@ -215,6 +236,12 @@ async def post_register(
     room:        str = Form(...),
     description: str = Form(...)
 ):
+    if room == "":
+        raise HTTPException(
+            detail="Room is empty",
+            status_code=422
+        )
+
     item: Item = Item(
         id=id,
         room=room,
@@ -260,6 +287,12 @@ async def post_update(
             status_code=422
         )
 
+    item: Item = Item(
+        id=id,
+        room=room,
+        description=description
+    )
+
     with sqlite3.connect(db_path) as con:
         cur = con.cursor()
         cur.execute("""
@@ -268,9 +301,9 @@ async def post_update(
                 description = ?
             WHERE id = ?
             """,
-            (room,
-             description,
-             id)
+            (item.room,
+             item.description,
+             item.id)
         )
         if cur.rowcount == 0:
             raise HTTPException(
