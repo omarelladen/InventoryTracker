@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Entrega 2</title>
+</head>
+<body>
+    <h1>Entregas 4 e 5</h1>
+
+    <h2>Objetivos</h2>
+    <ul>
+      <li>Projetar placa</li>
+      <li>Soldar componentes em uma placa</li>
+      <li>Testar placa</li>
+      <li>Testar e duração de bateria buscando otimizações</li>
+
+      <li>Projetar caixa</li>
+      <li>Imprimir caixa e testar resultado</li>
+      <li>Testar detecção de movimento com a caixa</li>
+    </ul>
+
+    <h2>Desenvolvimento</h2>
+
+    <h3>Dados</h3>
+    <p>
+        Foi implementado o envio do BSSID da conexão do microcontrolador, ou
+        seja, o endereço MAC do Access Point a que ele está conectado via Wi-Fi.
+        Isso ajuda a saber melhor a localização dos itens do inventário em
+        redes com múltiplos Access Points. Foi também enviada separadamente a
+        contagem de boot e de acordamentos repetidos, assim como foi
+        implementado um divisor resistivo para medição da tensão da bateria.
+    </p>
+
+    <div style="text-align: center;">
+        <img src="imgs/alerts.png" alt="Alerts" width="1000">
+    </div>
+
+    <p>
+        Além disso, foi definido um intervalo de tempo para que o próximo
+        acordamento do microcontrolador que fez uma requisição ao servidor
+        seja sorteado dentro deste intervalo. Com isso, foi criada também
+        uma tabela para se registrar o horário esperado para o acordamento
+        de cada item.
+    </p>
+
+    <div style="text-align: center;">
+        <img src="imgs/next_wakeups.png" alt="Next Wakeups" width="1000">
+    </div>
+
+    <p>
+        Por fim, em todas as tabelas que apresentam datas é agora criada
+        uma nova coluna com o fuso horário local, já que as datas são
+        armazenadas em UTC-0.
+    </p>
+
+
+    <h3>Sensor SW-420</h3>
+
+    <p>
+        Foi testado o módulo sensor de vibração SW-420, que possui um componente
+        que altera a resistência ao ser movimentado, de forma que um CI
+        comparador realiza a comparação de tensão em relação a um potenciômetro.
+        Ele apresentou uma sensibilidade muito boa, que pode ser ajustada pelo
+        potenciômetro. A desvantagem em relação ao sensor de mola (KY-002) é
+        que ele gasta mais energia por o circuito ficar sempre ligado, e também
+        por ter dois LEDs que ficam ligados (a retirada deles seria uma melhoria
+        futura).
+    </p>
+
+    <div style="text-align: center;">
+        <img src="imgs/sw420.jpg" alt="SW-420" width="200">
+        <video src="vids/sw420.mp4" controls width="400"></video>
+    </div>
+
+    <h3>Placa e Caixa</h3>
+
+    <p>
+        Foi utilizada uma caixa de power bank para armazenar a placa e a bateria,
+        de forma que não foi preciso realizar nenhuma compra ou impressão 3D, e
+        possui um tamanho quase ideal para o protótipo.
+    </p>
+
+    <div style="text-align: center;">
+        <img src="imgs/boxes.jpg" alt="Boxes" width="500">
+        <img src="imgs/board.jpg" alt="Board" width="500">
+    </div>
+
+    <p>
+        Foi realizada a solda utilizando o mínimo espaço possível, de forma a
+        caber na caixa. Por isso, ela foi bastante trabalhosa, precisando
+        planejar bem a forma de rotear os fios. Posteriormente, a placa foi
+        cortada com uma micro retífica
+        da universidade. Foi também necessário utilizar esta ferramenta para
+        remover alguns elementos internos da caixa que dificultavam o encaixe.
+    </p>
+
+    <p>
+        Na placa foi solda uma barra de pinos para ser possível alterar entre
+        sensores. O sensor de mola não ficou solto o suficiente dentro da caixa
+        para possuir uma sensibilidade boa, por isso o SW-40 foi o escolhido
+        para se apresentar o projeto.
+    </p>
+
+    <div style="text-align: center;">
+        <img src="imgs/result.jpg" alt="Result" width="600">
+        <img src="imgs/down.jpg" alt="Down" width="700">
+    </div>
+
+    <h3>Bateria</h3>
+    <p>
+        Foi realizado um teste de duração de um bateria alcalina usada (8.3/9V) e
+        utilizando a placa
+        de desenvolvimento DOIT ESP32 DevKit V1 (que não é pensada para
+        economia de energia) para se medir um caso ruim de projeto. Com isso, foi
+        deixado o microcontrolador em Deep Sleep pela maior parte do tempo para
+        verificar quanto tempo duraria a bateria, com um resultado ruim de cerca de dois
+        dias.
+    </p>
+
+    <p>
+        A bateria escolhida para o protótipo foi uma bateria de lítio CR18650,
+        pois é facilmente
+        encontrada, ser bastante utilizada para projetos embarcados, e por
+        caber bem na caixa (já que o power bank utilizava este tipo de bateria).
+        Por restrições de tempo, não foi possível medir a duração da bateria.
+    </p>
+
+</body>
+</html>
+
