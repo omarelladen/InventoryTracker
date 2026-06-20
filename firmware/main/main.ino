@@ -37,7 +37,7 @@
 #define ALERT_REP_COUNT 3
 
 #define NUM_POST_TRIES 5
-#define TIMEOUT_WIFI_S 10
+#define TIMEOUT_WIFI_S 30
 #define NW_CHECK_DELAY 300
 
 #define NUM_BEEPS 3
@@ -78,23 +78,25 @@ void beep_buzzer()
 
 bool connect_wifi(time_t *time_now)
 {
-    WiFi.begin(NW_SSID, NW_PASSWORD);
-
-    time(time_now);
-    time_t time_start = *time_now;
-
-    PRINTLN("Connecting");
-    while(WiFi.status() != WL_CONNECTED)
+    if (WiFi.status() != WL_CONNECTED)
     {
-        delay(NW_CHECK_DELAY);
-        PRINT(".");
+        WiFi.begin(NW_SSID, NW_PASSWORD);
 
         time(time_now);
-        if (*time_now - time_start > TIMEOUT_WIFI_S)
+        time_t time_start = *time_now;
+
+        PRINTLN("Connecting");
+        while(WiFi.status() != WL_CONNECTED)
         {
-            PRINTLN("Timeout");
-            // TODO: save msg in a buffer and send later
-            return false;
+            delay(NW_CHECK_DELAY);
+            PRINT(".");
+
+            time(time_now);
+            if (*time_now - time_start > TIMEOUT_WIFI_S)
+            {
+                PRINTLN("Timeout");
+                return false;
+            }
         }
     }
 
@@ -177,6 +179,10 @@ bool post_data(int battery_level, String status)
                 {
                     esp_sleep_enable_timer_wakeup(next_wakeup * 1000000);  // s
                 }
+                else
+                {
+                    PRINTLN("Invalid value for next_wakeup");
+                }
 
                 http.end();
                 return true;
@@ -199,7 +205,6 @@ bool post_data(int battery_level, String status)
 
 void setup()
 {
-
     SERIAL_BEGIN(BAUD_RATE);
     DELAY(1500);
 
@@ -207,10 +212,15 @@ void setup()
     pinMode(PIN_LED,    OUTPUT);
     pinMode(PIN_BUZZER, OUTPUT);
 
-    esp_sleep_wakeup_cause_t wakeup_case = esp_sleep_get_wakeup_cause();
+
+    esp_sleep_wakeup_cause_t wakeup_cause = esp_sleep_get_wakeup_cause();
 
     esp_sleep_enable_ext0_wakeup((gpio_num_t)PIN_WAKEUP, WAKEUP_LEVEL);
 
+
+    boot_count++;
+    PRINT("Boot num: ");
+    PRINTLN(boot_count);
 
     // Read battery level
     int battery_level = analogRead(PIN_BATTERY);
@@ -230,17 +240,19 @@ void setup()
     PRINT("Diff: ");
     PRINTLN(time_diff);
 
-    if (boot_count == 0)
+
+    if (boot_count == 1)
     {
         if (connect_wifi(&time_now))
             post_data(battery_level, "reset");
     }
 
-    if (wakeup_case == ESP_SLEEP_WAKEUP_TIMER)
+    if (wakeup_cause == ESP_SLEEP_WAKEUP_TIMER)
     {
         if (connect_wifi(&time_now))
             post_data(battery_level, "ping");
     }
+
 
     if (time_diff < MAX_TIME_REP_S)
     {
@@ -255,28 +267,19 @@ void setup()
         PRINTLN("Normal wakeup");
     }
 
-
     if (rep_wakeup_count > ALERT_REP_COUNT)  // TODO: debounce
     {
         beep_buzzer();
 
-        // Try to connect to Wi-Fi and send risk alert
         if (connect_wifi(&time_now))
             post_data(battery_level, "risk");
     }
 
-    // TODO: prepare wakeup at a determined time for daily ping or retry
+    // TODO: retry on request error
 
-
-    boot_count++;
-    PRINT("Boot num: ");
-    PRINTLN(boot_count);
 
     digitalWrite(PIN_LED, HIGH);
     delay(LED_DELAY);
-
-
-    // Sleep
 
     PRINTLN("Going to sleep now");
     SERIAL_FLUSH();
@@ -284,6 +287,7 @@ void setup()
     time(&time_now);
     last_time_awake = time_now;
 
+    // Sleep
     esp_deep_sleep_start();
 }
 
