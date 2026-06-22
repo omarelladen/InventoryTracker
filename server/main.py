@@ -135,7 +135,7 @@ async def get_alerts_and_registrations():
                 <title>Alertas e Cadastros</title>
             </head>
             <body>
-                <h1>Todos os dados</h1>
+                <h1>Alertas e Cadastros</h1>
                 {html_table}
             </body>
         </html>
