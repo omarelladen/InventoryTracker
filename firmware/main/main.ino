@@ -34,16 +34,17 @@
 #define WAKEUP_LEVEL HIGH
 
 #define MAX_TIME_REP_S 10
-#define ALERT_REP_COUNT 3
+#define ALERT_REP_COUNT 4
 
-#define NUM_POST_TRIES 5
+#define NUM_POST_TRIES 10
 #define TIMEOUT_WIFI_S 30
 #define NW_CHECK_DELAY 300
+#define NEXT_RETRY_MINUTES 30
 
 #define NUM_BEEPS 3
 #define BEEP_DELAY 200
 
-#define LED_DELAY 100
+#define LED_DELAY 300
 
 #define BAUD_RATE 115200
 
@@ -53,7 +54,6 @@
 #define NW_PASSWORD ""
 
 #define URL "http://192.168.100.40:8000/alert"
-         // "http://10.128.212.80:8000/alert"
 
 #define ITEM_ID 0
 
@@ -63,6 +63,7 @@
 RTC_DATA_ATTR int boot_count = 0;
 RTC_DATA_ATTR int rep_wakeup_count = 0;
 RTC_DATA_ATTR time_t last_time_awake = 0;
+RTC_DATA_ATTR bool timout_risk = false;
 
 
 void beep_buzzer()
@@ -241,18 +242,25 @@ void setup()
     PRINTLN(time_diff);
 
 
+
     if (boot_count == 1)
     {
         if (connect_wifi(&time_now))
             post_data(battery_level, "reset");
     }
 
-    if (wakeup_cause == ESP_SLEEP_WAKEUP_TIMER)
+    if (wakeup_cause == ESP_SLEEP_WAKEUP_TIMER && !timout_risk)
     {
         if (connect_wifi(&time_now))
             post_data(battery_level, "ping");
     }
 
+    if (timout_risk)
+    {
+        if (connect_wifi(&time_now))
+            if (post_data(battery_level, "timeout_risk"))
+                timout_risk = false;
+    }
 
     if (time_diff < MAX_TIME_REP_S)
     {
@@ -272,10 +280,17 @@ void setup()
         beep_buzzer();
 
         if (connect_wifi(&time_now))
-            post_data(battery_level, "risk");
+        {
+            if (!post_data(battery_level, "risk"))
+                timout_risk = true;
+                esp_sleep_enable_timer_wakeup(NEXT_RETRY_MINUTES*60*1000000);
+        }
+        else
+        {
+            timout_risk = true;
+            esp_sleep_enable_timer_wakeup(NEXT_RETRY_MINUTES*60*1000000);
+        }
     }
-
-    // TODO: retry on request error
 
 
     digitalWrite(PIN_LED, HIGH);
