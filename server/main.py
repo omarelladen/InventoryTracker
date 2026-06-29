@@ -119,8 +119,8 @@ async def get_update():
 async def get_alerts():
     query = f"""
         SELECT *,
-        ROUND(battery{battery_value_to_v}, 2) || ' V' AS battery,
-        datetime(datetime, '-3 hours') AS localtime
+               ROUND(battery{battery_value_to_v}, 2) || ' V' AS _battery_v,
+               datetime(datetime, '-3 hours') AS _localtime
         FROM alerts
     """
     html_table = create_html_table(query)
@@ -141,23 +141,23 @@ async def get_alerts():
 @app.get("/all", response_class=HTMLResponse)
 async def get_all():
     query = f"""
-        SELECT al.id AS 'alert id',
-               al.item_id AS 'item id',
-               it.description AS 'item descr',
+        SELECT al.id,
+               al.item_id,
+               it.description AS _item_descr,
                it.room,
                al.status,
-               ROUND(al.battery{battery_value_to_v}, 2) || ' V' AS battery,
-               al.boot_count AS 'boot count',
-               al.rep_wakeups AS 'rep wakeups',
+               ROUND(al.battery{battery_value_to_v}, 2) || ' V' AS _battery_v,
+               al.boot_count,
+               al.rep_wakeups,
                al.bssid,
-               ap.description AS 'ap descr',
-               nw.datetime AS 'next wakeup',
-               datetime(al.datetime, '-3 hours') AS localtime
+               ap.description AS _ap_descr,
+               nw.datetime AS _next_wakeup,
+               datetime(al.datetime, '-3 hours') AS _localtime
         FROM alerts AS al
         LEFT JOIN items AS it
             ON al.item_id = it.id
         LEFT JOIN next_wakeups AS nw
-            ON it.id = nw.item_id
+            ON al.item_id = nw.item_id
         LEFT JOIN access_points AS ap
             ON al.bssid = ap.bssid
     """
@@ -214,7 +214,10 @@ async def get_access_points():
 
 @app.get("/next_wakeups", response_class=HTMLResponse)
 async def get_next_wakeups():
-    query = "SELECT *, datetime(datetime, '-3 hours') AS localtime FROM next_wakeups"
+    query = """
+        SELECT *, datetime(datetime, '-3 hours') AS _localtime
+        FROM next_wakeups
+    """
     html_table = create_html_table(query)
     return HTMLResponse(
         content=f"""
