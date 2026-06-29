@@ -149,6 +149,7 @@ async def get_all():
                it.description AS _item_descr,
                it.room,
                al.status,
+               al.battery,
                ROUND(al.battery{battery_value_to_v}, 2) || ' V' AS _battery_v,
                al.boot_count,
                al.rep_wakeups,
