@@ -8,7 +8,7 @@ from fastapi import FastAPI, Form, HTTPException
 from fastapi.responses import HTMLResponse, Response, RedirectResponse
 
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 
 db_path = "db.sqlite3"
 
@@ -208,10 +208,10 @@ async def get_access_points():
         content=f"""
         <html>
             <head>
-                <title>Itens</title>
+                <title>Access Points</title>
             </head>
             <body style="text-align: center;">
-                <h1>Itens</h1>
+                <h1>Access Points</h1>
                 {html_table}
                 <br><br>
                 <button onclick="window.location.href='/'">Voltar</button>
