@@ -1,13 +1,11 @@
 import random
 import sqlite3
+from typing import Annotated
 
 import uvicorn
 from pydantic import BaseModel
 from fastapi import FastAPI, Form, HTTPException
 from fastapi.responses import HTMLResponse, Response, RedirectResponse
-
-import platform
-from importlib.metadata import version
 
 
 __version__ = "0.2.0"
@@ -300,22 +298,12 @@ async def post_alert(alert: Alert):
     return {"next_wakeup": next_wakeup}
 
 @app.post("/register_item")
-async def post_register_item(
-    id:          int = Form(...),
-    room:        str = Form(...),
-    description: str = Form(...)
-):
-    if room == "":
+async def post_register_item(item: Annotated[Item, Form()]):
+    if item.room == "":
         raise HTTPException(
             detail="Room is empty",
             status_code=422
         )
-
-    item: Item = Item(
-        id=id,
-        room=room,
-        description=description
-    )
 
     with sqlite3.connect(db_path, timeout=timeout_s) as con:
         cur = con.cursor()
@@ -345,15 +333,7 @@ async def post_register_item(
     return RedirectResponse(url="/", status_code=303)
 
 @app.post("/register_access_point")
-async def post_register_access_point(
-    bssid:       str = Form(...),
-    description: str = Form(...)
-):
-    ap: AccessPoint = AccessPoint(
-        bssid=bssid,
-        description=description
-    )
-
+async def post_register_access_point(ap: Annotated[AccessPoint, Form()]):
     with sqlite3.connect(db_path, timeout=timeout_s) as con:
         cur = con.cursor()
 
@@ -378,22 +358,12 @@ async def post_register_access_point(
     return RedirectResponse(url="/", status_code=303)
 
 @app.post("/update")
-async def post_update(
-    id:          int = Form(...),
-    room:        str = Form(...),
-    description: str = Form(...)
-):
-    if room == "":
+async def post_update(item: Annotated[Item, Form()]):
+    if item.room == "":
         raise HTTPException(
             detail="Room is empty",
             status_code=422
         )
-
-    item: Item = Item(
-        id=id,
-        room=room,
-        description=description
-    )
 
     with sqlite3.connect(db_path) as con:
         cur = con.cursor()
