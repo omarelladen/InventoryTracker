@@ -301,7 +301,7 @@ async def post_alert(alert: Alert):
 
 @app.post("/register_item")
 async def post_register_item(item: Annotated[Item, Form()]):
-    if item.room == "":
+    if item.room.strip() == "":
         raise HTTPException(
             detail="Room is empty",
             status_code=422
@@ -336,6 +336,17 @@ async def post_register_item(item: Annotated[Item, Form()]):
 
 @app.post("/register_access_point")
 async def post_register_access_point(ap: Annotated[AccessPoint, Form()]):
+    if ap.bssid.strip() == "":
+        raise HTTPException(
+            detail="SSID is empty",
+            status_code=422
+        )
+    if ap.description.strip() == "":
+        raise HTTPException(
+            detail="Description is empty",
+            status_code=422
+        )
+
     with sqlite3.connect(db_path, timeout=timeout_s) as con:
         cur = con.cursor()
 
@@ -361,7 +372,7 @@ async def post_register_access_point(ap: Annotated[AccessPoint, Form()]):
 
 @app.post("/update")
 async def post_update(item: Annotated[Item, Form()]):
-    if item.room == "":
+    if item.room.strip() == "":
         raise HTTPException(
             detail="Room is empty",
             status_code=422
