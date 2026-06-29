@@ -3,7 +3,7 @@
 #include <HTTPClient.h>
 
 
-#define DEBUG true
+#define DEBUG false
 #if DEBUG
     #define PRINT(x)        Serial.print(x)
     #define PRINTLN(x)      Serial.println(x)
@@ -18,7 +18,7 @@
     #define SERIAL_FLUSH()
 #endif
 
-#define S3 false
+#define S3 true
 #if S3  // Waveshare ESP32-S3-Zero
     #define PIN_WAKEUP 4
     #define PIN_LED 7
@@ -34,7 +34,7 @@
 #define WAKEUP_LEVEL HIGH
 
 #define MAX_TIME_REP_S 10
-#define ALERT_REP_COUNT 4
+#define ALERT_REP_COUNT 10
 
 #define NUM_POST_TRIES 10
 #define TIMEOUT_WIFI_S 30
@@ -61,7 +61,7 @@
 
 
 RTC_DATA_ATTR int boot_count = 0;
-RTC_DATA_ATTR int rep_wakeup_count = 0;
+RTC_DATA_ATTR int rep_wakeups = 0;
 RTC_DATA_ATTR time_t last_time_awake = 0;
 RTC_DATA_ATTR bool timout_risk = false;
 
@@ -152,12 +152,12 @@ bool post_data(int battery_level, String status)
             http.begin(URL);
 
             String body =
-                "{\"item_id\":"           + String(ITEM_ID)          + "," \
-                + "\"status\":"           + "\"" + status + "\""     + "," \
-                + "\"battery\":"          + String(battery_level)    + "," \
-                + "\"boot_count\":"       + String(boot_count)       + "," \
-                + "\"rep_wakeup_count\":" + String(rep_wakeup_count) + "," \
-                + "\"bssid\":"            + "\"" + WiFi.BSSIDstr() + "\""  \
+                "{\"item_id\":"      + String(ITEM_ID)          + "," \
+                + "\"status\":"      + "\"" + status + "\""     + "," \
+                + "\"battery\":"     + String(battery_level)    + "," \
+                + "\"boot_count\":"  + String(boot_count)       + "," \
+                + "\"rep_wakeups\":" + String(rep_wakeups) + "," \
+                + "\"bssid\":"       + "\"" + WiFi.BSSIDstr() + "\""  \
                 + "}";
 
             http.addHeader("Content-Type", "application/json");
@@ -264,18 +264,18 @@ void setup()
 
     if (time_diff < MAX_TIME_REP_S)
     {
-        rep_wakeup_count++;
+        rep_wakeups++;
         PRINT("Repeated wakeup! Count: ");
-        PRINTLN(rep_wakeup_count);
+        PRINTLN(rep_wakeups);
     }
     else
     {
         // Reset count
-        rep_wakeup_count = 1;
+        rep_wakeups = 1;
         PRINTLN("Normal wakeup");
     }
 
-    if (rep_wakeup_count > ALERT_REP_COUNT)  // TODO: debounce
+    if (rep_wakeups > ALERT_REP_COUNT)  // TODO: debounce
     {
         beep_buzzer();
 

@@ -19,6 +19,8 @@ max_next_wakeup = 21*3600  # 21h
 
 timeout_s = 60
 
+battery_value_to_v = "/4095.0*3.3*2"
+
 
 app = FastAPI(
     title="SIMPAT",
@@ -27,12 +29,12 @@ app = FastAPI(
 
 
 class Alert(BaseModel):
-    item_id:          int
-    status:           str
-    battery:          int
-    boot_count:       int
-    rep_wakeup_count: int
-    bssid:            str
+    item_id:     int
+    status:      str
+    battery:     int
+    boot_count:  int
+    rep_wakeups: int
+    bssid:       str
 
 class Item(BaseModel):
     id:          int
@@ -115,7 +117,12 @@ async def get_update():
 
 @app.get("/alerts", response_class=HTMLResponse)
 async def get_alerts():
-    query = "SELECT *, datetime(datetime, '-3 hours') AS localtime FROM alerts"
+    query = f"""
+        SELECT *,
+        ROUND(battery{battery_value_to_v}, 2) || ' V' AS battery,
+        datetime(datetime, '-3 hours') AS localtime
+        FROM alerts
+    """
     html_table = create_html_table(query)
     return HTMLResponse(
         content=f"""
@@ -133,44 +140,41 @@ async def get_alerts():
 
 @app.get("/all", response_class=HTMLResponse)
 async def get_all():
-    try:
-        query = """
-            SELECT al.id AS 'alert id',
-                   al.item_id AS 'item id',
-                   it.description AS 'item descr',
-                   it.room,
-                   al.status,
-                   al.battery,
-                   al.boot_count AS 'boot count',
-                   al.rep_wakeup_count AS 'rep wakeups',
-                   al.bssid,
-                   ap.description AS 'ap descr',
-                   nw.datetime AS 'next wakeup',
-                   datetime(al.datetime, '-3 hours') AS localtime
-            FROM alerts AS al
-            LEFT JOIN items AS it
-                ON al.item_id = it.id
-            LEFT JOIN next_wakeups AS nw
-                ON it.id = nw.item_id
-            LEFT JOIN access_points AS ap
-                ON al.bssid = ap.bssid
+    query = f"""
+        SELECT al.id AS 'alert id',
+               al.item_id AS 'item id',
+               it.description AS 'item descr',
+               it.room,
+               al.status,
+               ROUND(al.battery{battery_value_to_v}, 2) || ' V' AS battery,
+               al.boot_count AS 'boot count',
+               al.rep_wakeups AS 'rep wakeups',
+               al.bssid,
+               ap.description AS 'ap descr',
+               nw.datetime AS 'next wakeup',
+               datetime(al.datetime, '-3 hours') AS localtime
+        FROM alerts AS al
+        LEFT JOIN items AS it
+            ON al.item_id = it.id
+        LEFT JOIN next_wakeups AS nw
+            ON it.id = nw.item_id
+        LEFT JOIN access_points AS ap
+            ON al.bssid = ap.bssid
+    """
+    html_table = create_html_table(query)
+    return HTMLResponse(
+        content=f"""
+        <html>
+            <head>
+                <title>Alertas Completos</title>
+            </head>
+            <body>
+                <h1>Alertas Completos</h1>
+                {html_table}
+            </body>
+        </html>
         """
-        html_table = create_html_table(query)
-        return HTMLResponse(
-            content=f"""
-            <html>
-                <head>
-                    <title>Alertas Completos</title>
-                </head>
-                <body>
-                    <h1>Alertas Completos</h1>
-                    {html_table}
-                </body>
-            </html>
-            """
-        )
-    except Exception as e:
-        print(e)
+    )
 
 @app.get("/items", response_class=HTMLResponse)
 async def get_items():
@@ -254,7 +258,7 @@ async def post_alert(alert: Alert):
              status,
              battery,
              boot_count,
-             rep_wakeup_count,
+             rep_wakeups,
              bssid)
             VALUES (?, ?, ?, ?, ?, ?)
             """,
@@ -262,7 +266,7 @@ async def post_alert(alert: Alert):
              alert.status,
              alert.battery,
              alert.boot_count,
-             alert.rep_wakeup_count,
+             alert.rep_wakeups,
              alert.bssid)
         )
         cur.execute("""
