@@ -10,12 +10,14 @@ import platform
 from importlib.metadata import version
 
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 db_path = "db.sqlite3"
 
 min_next_wakeup = 18*3600  # 18h
 max_next_wakeup = 21*3600  # 21h
+
+timeout_s = 60
 
 
 app = FastAPI(
@@ -37,9 +39,13 @@ class Item(BaseModel):
     room:        str
     description: str
 
+class AccessPoint(BaseModel):
+    bssid:       str
+    description: str
+
 
 def create_html_table(query):
-    with sqlite3.connect(db_path, timeout=60) as con:
+    with sqlite3.connect(db_path, timeout=timeout_s) as con:
         cur = con.cursor()
         cur.execute(query)
 
@@ -89,9 +95,15 @@ async def get_index():
         content = f.read()
     return HTMLResponse(content=content)
 
-@app.get("/register", response_class=HTMLResponse)
-async def get_register():
-    with open("register.html", "r", encoding="utf-8") as f:
+@app.get("/register_item", response_class=HTMLResponse)
+async def get_register_item():
+    with open("register_item.html", "r", encoding="utf-8") as f:
+        content = f.read()
+    return HTMLResponse(content=content)
+
+@app.get("/register_access_point", response_class=HTMLResponse)
+async def get_register_access_point():
+    with open("register_ap.html", "r", encoding="utf-8") as f:
         content = f.read()
     return HTMLResponse(content=content)
 
@@ -119,27 +131,46 @@ async def get_alerts():
         """
     )
 
-@app.get("/alerts_and_registrations", response_class=HTMLResponse)
-async def get_alerts_and_registrations():
-    query = """
-        SELECT *, datetime(datetime, '-3 hours') AS localtime
-        FROM alerts
-        LEFT JOIN items
-    """
-    html_table = create_html_table(query)
-    return HTMLResponse(
-        content=f"""
-        <html>
-            <head>
-                <title>Alertas e Cadastros</title>
-            </head>
-            <body>
-                <h1>Alertas e Cadastros</h1>
-                {html_table}
-            </body>
-        </html>
+@app.get("/all", response_class=HTMLResponse)
+async def get_all():
+    try:
+        query = """
+            SELECT al.id AS 'alert id',
+                   al.item_id AS 'item id',
+                   it.description AS 'item descr',
+                   it.room,
+                   al.status,
+                   al.battery,
+                   al.boot_count AS 'boot count',
+                   al.rep_wakeup_count AS 'rep wakeups',
+                   al.bssid,
+                   ap.description AS 'ap descr',
+                   nw.datetime AS 'next wakeup',
+                   datetime(al.datetime, '-3 hours') AS localtime
+            FROM alerts AS al
+            LEFT JOIN items AS it
+                ON al.item_id = it.id
+            LEFT JOIN next_wakeups AS nw
+                ON it.id = nw.item_id
+            LEFT JOIN access_points AS ap
+                ON al.bssid = ap.bssid
         """
-    )
+        html_table = create_html_table(query)
+        return HTMLResponse(
+            content=f"""
+            <html>
+                <head>
+                    <title>Alertas Completos</title>
+                </head>
+                <body>
+                    <h1>Alertas Completos</h1>
+                    {html_table}
+                </body>
+            </html>
+            """
+        )
+    except Exception as e:
+        print(e)
 
 @app.get("/items", response_class=HTMLResponse)
 async def get_items():
@@ -159,8 +190,26 @@ async def get_items():
         """
     )
 
+@app.get("/access_points", response_class=HTMLResponse)
+async def get_access_points():
+    query = "SELECT * FROM access_points"
+    html_table = create_html_table(query)
+    return HTMLResponse(
+        content=f"""
+        <html>
+            <head>
+                <title>Itens</title>
+            </head>
+            <body>
+                <h1>Itens</h1>
+                {html_table}
+            </body>
+        </html>
+        """
+    )
+
 @app.get("/next_wakeups", response_class=HTMLResponse)
-async def get_items():
+async def get_next_wakeups():
     query = "SELECT *, datetime(datetime, '-3 hours') AS localtime FROM next_wakeups"
     html_table = create_html_table(query)
     return HTMLResponse(
@@ -196,7 +245,7 @@ async def server_about():
 async def post_alert(alert: Alert):
     next_wakeup = random.randint(min_next_wakeup, max_next_wakeup)
 
-    with sqlite3.connect(db_path, timeout=60) as con:
+    with sqlite3.connect(db_path, timeout=timeout_s) as con:
         cur = con.cursor()
 
         cur.execute("""
@@ -229,8 +278,8 @@ async def post_alert(alert: Alert):
 
     return {"next_wakeup": next_wakeup}
 
-@app.post("/register")
-async def post_register(
+@app.post("/register_item")
+async def post_register_item(
     id:          int = Form(...),
     room:        str = Form(...),
     description: str = Form(...)
@@ -247,7 +296,7 @@ async def post_register(
         description=description
     )
 
-    with sqlite3.connect(db_path, timeout=60) as con:
+    with sqlite3.connect(db_path, timeout=timeout_s) as con:
         cur = con.cursor()
 
         try:
@@ -272,6 +321,39 @@ async def post_register(
         con.commit()
 
     # TODO: show success msg
+    return RedirectResponse(url="/", status_code=303)
+
+@app.post("/register_access_point")
+async def post_register_access_point(
+    bssid:       str = Form(...),
+    description: str = Form(...)
+):
+    ap: AccessPoint = AccessPoint(
+        bssid=bssid,
+        description=description
+    )
+
+    with sqlite3.connect(db_path, timeout=timeout_s) as con:
+        cur = con.cursor()
+
+        try:
+            cur.execute("""
+                INSERT INTO access_points
+                (bssid,
+                 description)
+                VALUES (?, ?)
+                """,
+                (ap.bssid,
+                 ap.description)
+            )
+        except sqlite3.IntegrityError:
+            raise HTTPException(
+                detail="AP already exists",
+                status_code=422
+            )
+
+        con.commit()
+
     return RedirectResponse(url="/", status_code=303)
 
 @app.post("/update")

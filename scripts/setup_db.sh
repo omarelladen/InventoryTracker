@@ -32,4 +32,11 @@ next_wakeups
     datetime DATETIME
 );
 
+CREATE TABLE IF NOT EXISTS
+access_points
+(
+    bssid       TEXT PRIMARY KEY,
+    description TEXT DEFAULT ''
+);
+
 EOF
