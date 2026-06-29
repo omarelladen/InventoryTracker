@@ -131,9 +131,11 @@ async def get_alerts():
             <head>
                 <title>Alertas</title>
             </head>
-            <body>
+            <body style="text-align: center;">
                 <h1>Alertas</h1>
                 {html_table}
+                <br><br>
+                <button onclick="window.location.href='/'">Voltar</button>
             </body>
         </html>
         """
@@ -169,9 +171,11 @@ async def get_all():
             <head>
                 <title>Alertas Completos</title>
             </head>
-            <body>
+            <body style="text-align: center;">
                 <h1>Alertas Completos</h1>
                 {html_table}
+                <br><br>
+                <button onclick="window.location.href='/'">Voltar</button>
             </body>
         </html>
         """
@@ -187,9 +191,11 @@ async def get_items():
             <head>
                 <title>Itens</title>
             </head>
-            <body>
+            <body style="text-align: center;">
                 <h1>Itens</h1>
                 {html_table}
+                <br><br>
+                <button onclick="window.location.href='/'">Voltar</button>
             </body>
         </html>
         """
@@ -205,9 +211,11 @@ async def get_access_points():
             <head>
                 <title>Itens</title>
             </head>
-            <body>
+            <body style="text-align: center;">
                 <h1>Itens</h1>
                 {html_table}
+                <br><br>
+                <button onclick="window.location.href='/'">Voltar</button>
             </body>
         </html>
         """
@@ -226,9 +234,11 @@ async def get_next_wakeups():
             <head>
                 <title>Próximos Acordamentos</title>
             </head>
-            <body>
+            <body style="text-align: center;">
                 <h1>Próximos Acordamentos</h1>
                 {html_table}
+                <br><br>
+                <button onclick="window.location.href='/'">Voltar</button>
             </body>
         </html>
         """
@@ -239,9 +249,11 @@ async def server_about():
     html_content = f"""
     <!DOCTYPE html>
     <html>
-        <body>
+        <body style="text-align: center;">
             <p>
                 SIMPAT {__version__}
+                <br><br>
+                <button onclick="window.location.href='/'">Voltar</button>
             </p>
         </body>
     </html>
