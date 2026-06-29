@@ -19,6 +19,8 @@ timeout_s = 60
 
 battery_value_to_v = "/4095.0*3.3*2"
 
+timezone = "-3 hours"
+
 
 app = FastAPI(
     title="SIMPAT",
@@ -119,7 +121,7 @@ async def get_alerts():
     query = f"""
         SELECT *,
                ROUND(battery{battery_value_to_v}, 2) || ' V' AS _battery_v,
-               datetime(datetime, '-3 hours') AS _localtime
+               datetime(datetime, '{timezone}') AS _localtime
         FROM alerts
     """
     html_table = create_html_table(query)
@@ -154,7 +156,7 @@ async def get_all():
                al.bssid,
                ap.description AS _ap_descr,
                nw.datetime AS _next_wakeup,
-               datetime(al.datetime, '-3 hours') AS _localtime
+               datetime(al.datetime, '{timezone}') AS _localtime
         FROM alerts AS al
         LEFT JOIN items AS it
             ON al.item_id = it.id
@@ -222,8 +224,8 @@ async def get_access_points():
 
 @app.get("/next_wakeups", response_class=HTMLResponse)
 async def get_next_wakeups():
-    query = """
-        SELECT *, datetime(datetime, '-3 hours') AS _localtime
+    query = f"""
+        SELECT *, datetime(datetime, '{timezone}') AS _localtime
         FROM next_wakeups
     """
     html_table = create_html_table(query)
