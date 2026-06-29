@@ -64,8 +64,9 @@ def create_html_table(query):
         list_html_headers.append(f"<th>{i}</th>")
 
     html_table = f"""
-    <table border="1" style="border-collapse: collapse; width: 100%;">
-        <thead>
+    <table border="1"
+           style="border-collapse: collapse; width: 98%; margin: 0 auto;"
+    >        <thead>
             <tr>
                 {"".join(list_html_headers)}
             </tr>
