@@ -44,7 +44,7 @@
 #define NUM_BEEPS 3
 #define BEEP_DELAY 200
 
-#define LED_DELAY 300
+#define SLEEP_DELAY 300
 
 #define BAUD_RATE 115200
 
@@ -275,7 +275,7 @@ void setup()
         PRINTLN("Normal wakeup");
     }
 
-    if (rep_wakeups > ALERT_REP_COUNT)  // TODO: debounce
+    if (rep_wakeups > ALERT_REP_COUNT)  // TODO: debounce (now using SLEEP_DELAY)
     {
         beep_buzzer();
 
@@ -294,7 +294,8 @@ void setup()
 
 
     digitalWrite(PIN_LED, HIGH);
-    delay(LED_DELAY);
+
+    delay(SLEEP_DELAY);
 
     PRINTLN("Going to sleep now");
     SERIAL_FLUSH();
