@@ -13,7 +13,7 @@ alerts
     battery     INTEGER DEFAULT 0,
     boot_count  INTEGER DEFAULT 0,
     rep_wakeups INTEGER DEFAULT 0,
-    bssid       TEXT DEFAULT '',
+    bssid       TEXT DEFAULT '' REFERENCES access_points(bssid),
     datetime    DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
